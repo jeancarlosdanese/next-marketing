@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
+import ThemeToggle from "./ThemeToggle";
 
 export function Header({ user }: { user: { email: string } }) {
   const router = useRouter();
@@ -16,6 +17,7 @@ export function Header({ user }: { user: { email: string } }) {
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="flex items-center gap-4">
         <p className="text-sm">{user.email}</p>
+        <ThemeToggle />
         <Button variant="outline" onClick={logout}>
           Sair
         </Button>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   return (
-    <div className="w-64 bg-white shadow-lg min-h-screen p-4">
+    <aside className="w-64 min-h-screen p-4 bg-background text-foreground dark:bg-gray-900 dark:text-white">
       <h2 className="text-xl font-bold mb-6">Next-Marketing</h2>
       <nav className="space-y-4">
         <Link href="/dashboard">
@@ -29,6 +29,6 @@ export function Sidebar() {
           </Button>
         </Link>
       </nav>
-    </div>
+    </aside>
   );
 }
