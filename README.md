@@ -1,40 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 📌 Next-Marketing – Frontend para Gerenciamento de Campanhas de Marketing
 
-## Getting Started
+**Next-Marketing** é o frontend do sistema de **automação de campanhas de marketing**, permitindo a criação, edição, visualização e gerenciamento de campanhas enviadas via **e-mail e WhatsApp**. Ele consome a API do backend **[go-marketing](https://github.com/seu-usuario/go-marketing)**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Tecnologias Utilizadas
+
+- **Next.js** – Framework React para SSR/SSG.
+- **Tailwind CSS** – Estilização rápida e responsiva.
+- **TypeScript** – Tipagem estática e segurança no código.
+- **ShadCN/UI** – Componentes estilizados para melhor UX.
+- **Axios** – Requisições HTTP para a API.
+- **JWT (JSON Web Token)** – Autenticação segura.
+
+---
+
+## 🎯 Principais Funcionalidades
+
+✅ **Autenticação** via OTP (E-mail/WhatsApp).  
+✅ **Dashboard** com resumo de campanhas e métricas.  
+✅ **Gerenciamento de Campanhas** (criação, edição, ativação e exclusão).  
+✅ **Listas de Contatos** (importação via CSV e segmentação).  
+✅ **Gerenciamento de Templates** para e-mails e WhatsApp.  
+✅ **Configuração da Conta** (API Key, remetentes e permissões).
+
+---
+
+## ⚙️ Como Executar
+
+### 🔹 1️⃣ Clone o Repositório
+
+````sh
+git clone https://github.com/seu-usuario/next-marketing.git
+cd next-marketing
+
+
+### 🔹 2️⃣ Instale as Dependências
+```sh
+npm install
+# ou
+yarn install
+````
+
+### 🔹 3️⃣ Configure as Variáveis de Ambiente
+
+Crie um arquivo .env.local na raiz do projeto:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🔹 4️⃣ Execute o Projeto
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```sh
+npm run dev
+# ou
+yarn dev
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+O frontend estará disponível em http://localhost:3000.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📌 Conectando com o Backend (go-marketing)
 
-## Learn More
+O frontend consome a API do backend [go-marketing](https://github.com/seu-usuario/go-marketing), que gerencia campanhas e envios.
 
-To learn more about Next.js, take a look at the following resources:
+Caso o backend ainda não esteja rodando, siga as instruções do repositório go-marketing para iniciá-lo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠 Estrutura do Projeto
 
-## Deploy on Vercel
+📁 /pages – Contém as páginas da aplicação.
+📁 /components – Componentes reutilizáveis (botões, cards, etc.).
+📁 /styles – Estilos globais e configurações do Tailwind.
+📁 /types – Definições de tipos TypeScript.
+📁 /public – Assets públicos (ícones, imagens, etc.).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+🤝 Contribuição
+Sinta-se à vontade para contribuir com melhorias!
+
+1. Crie um fork do projeto.
+2. Crie uma branch com sua funcionalidade:
+
+```sh
+git checkout -b minha-feature
+```
+
+3. Faça as alterações e commit:
+
+```sh
+git commit -m "Adicionando nova funcionalidade"
+```
+
+4. Envie para o repositório:
+
+```sh
+git push origin minha-feature
+```
+
+5. Crie um Pull Request.
+
+---
+
+📄 Licença
+
+Este projeto está licenciado sob a MIT License.
+
+---
