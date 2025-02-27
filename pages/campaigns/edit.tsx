@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
+import { CampaignService } from "@/services/campaign";
+import { TemplateService } from "@/services/template";
+import { Template } from "@/types/template";
+import { Campaign } from "@/types/campaign";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Campaign } from "@/types/campaign";
 
 export default function EditCampaignPage() {
   const [campaign, setCampaign] = useState<
@@ -18,83 +20,70 @@ export default function EditCampaignPage() {
     filters: {
       tags: [],
       gender: "",
-      birth_date_range: { start: "", end: "" }, // 🔥 Agora `end` sempre é uma string válida
+      birth_date_range: { start: "", end: "" },
     },
     status: "pendente",
   });
 
-  const [emailTemplates, setEmailTemplates] = useState<{ id: string; name: string }[]>([]);
-  const [whatsappTemplates, setWhatsappTemplates] = useState<{ id: string; name: string }[]>([]);
+  const [emailTemplates, setEmailTemplates] = useState<Template[]>([]);
+  const [whatsappTemplates, setWhatsappTemplates] = useState<Template[]>([]);
 
   const router = useRouter();
   const { id } = router.query;
   const isEditing = Boolean(id);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
+    async function fetchData() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
 
-    // 🔍 Buscar templates de Email e WhatsApp separadamente
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/templates?channel=email`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setEmailTemplates(res.data))
-      .catch((err) => console.error("Erro ao carregar templates de email", err));
+        // 🔹 Carregar templates
+        setEmailTemplates(await TemplateService.getByChannel("email"));
+        setWhatsappTemplates(await TemplateService.getByChannel("whatsapp"));
 
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/templates?channel=whatsapp`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setWhatsappTemplates(res.data))
-      .catch((err) => console.error("Erro ao carregar templates de WhatsApp", err));
-
-    // 🔍 Se for edição, buscar dados da campanha
-    if (isEditing && id) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => {
+        // 🔹 Se for edição, buscar dados da campanha
+        if (isEditing && id) {
+          const data = await CampaignService.getById(id as string);
           setCampaign((prev) => ({
             ...prev,
-            name: res.data.name || "",
-            description: res.data.description || "",
-            channels: res.data.channels || prev.channels,
-            filters: res.data.filters || prev.filters,
-            status: res.data.status || "pendente",
+            name: data.name || "",
+            description: data.description || "",
+            channels: data.channels || prev.channels,
+            filters: data.filters || prev.filters,
+            status: data.status || "pendente",
           }));
-        })
-        .catch(() => router.push("/campaigns"));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados", error);
+        router.push("/campaigns");
+      }
     }
+
+    fetchData();
   }, [id, isEditing, router]);
 
   const saveCampaign = async () => {
-    const token = localStorage.getItem("token");
-
-    // 🔥 Limpa o JSON antes de enviar
     const cleanCampaign = {
       ...campaign,
       channels: Object.fromEntries(
-        Object.entries(campaign.channels).map(([key, value]) => [
-          key,
-          { template: value.template || undefined, priority: value.priority },
-        ])
+        Object.entries(campaign.channels)
+          .filter(([_, value]) => value.template) // ✅ Remove canais sem template
+          .map(([key, value]) => [
+            key,
+            { template: value.template as string, priority: value.priority }, // ✅ Garante que template é string
+          ])
       ),
     };
 
     try {
       if (isEditing) {
-        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/${id}`, cleanCampaign, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await CampaignService.update(id as string, cleanCampaign);
       } else {
-        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, cleanCampaign, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await CampaignService.create(cleanCampaign);
       }
       router.push("/campaigns");
     } catch (error) {
@@ -153,13 +142,13 @@ export default function EditCampaignPage() {
           <label className="block mt-4">Template WhatsApp:</label>
           <select
             className="w-full p-2 border rounded"
-            value={campaign.channels.whatsapp?.template}
+            value={campaign.channels?.whatsapp?.template}
             onChange={(e) =>
               setCampaign((prev) => ({
                 ...prev,
                 channels: {
                   ...prev.channels,
-                  whatsapp: { ...prev.channels.whatsapp, template: e.target.value },
+                  whatsapp: { ...prev.channels?.whatsapp, template: e.target.value },
                 },
               }))
             }
@@ -176,8 +165,11 @@ export default function EditCampaignPage() {
             )}
           </select>
 
+          {/* Status (Apenas Exibição) */}
+          <label className="block mt-4">Status:</label>
+          <Input value={campaign.status} disabled className="w-full p-2 border bg-gray-200" />
           {/* Campo de Status */}
-          <label className="block mt-4">Status da Campanha:</label>
+          {/* <label className="block mt-4">Status da Campanha:</label>
           <select
             className="w-full p-2 border rounded"
             value={campaign.status}
@@ -191,7 +183,7 @@ export default function EditCampaignPage() {
             <option value="pendente">Pendente</option>
             <option value="ativa">Ativa</option>
             <option value="concluida">Concluída</option>
-          </select>
+          </select> */}
 
           {/* Filtros: Tags */}
           <label className="block mt-4">Tags:</label>
@@ -267,6 +259,9 @@ export default function EditCampaignPage() {
 
           <Button onClick={saveCampaign} className="w-full mt-4">
             {isEditing ? "Salvar Alterações" : "Criar Campanha"}
+          </Button>
+          <Button variant="outline" className="w-full" onClick={() => router.push("/campaigns")}>
+            Voltar
           </Button>
         </CardContent>
       </Card>

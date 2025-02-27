@@ -2,68 +2,64 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Campaign } from "@/types/campaign"; // Importa o tipo
+import { CampaignService } from "@/services/campaign";
+import { Template } from "@/types/template";
+import { TemplateService } from "@/services/template";
 
 export default function NewCampaignPage() {
-  const [campaign, setCampaign] = useState<
-    Omit<Campaign, "id" | "account_id" | "status" | "created_at" | "updated_at">
-  >({
+  const [campaign, setCampaign] = useState({
     name: "",
     description: "",
     channels: { email: { template: "", priority: 1 }, whatsapp: { template: "", priority: 2 } },
     filters: { tags: [], gender: "", birth_date_range: { start: "", end: "" } },
   });
-  const [emailTemplates, setEmailTemplates] = useState<{ id: string; name: string }[]>([]);
-  const [whatsappTemplates, setWhatsappTemplates] = useState<{ id: string; name: string }[]>([]);
+
+  const [emailTemplates, setEmailTemplates] = useState<Template[]>([]);
+  const [whatsappTemplates, setWhatsappTemplates] = useState<Template[]>([]);
 
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
+    async function fetchTemplates() {
+      try {
+        setEmailTemplates(await TemplateService.getByChannel("email"));
+        setWhatsappTemplates(await TemplateService.getByChannel("whatsapp"));
+      } catch (error) {
+        console.error("Erro ao carregar templates", error);
+      }
     }
 
-    // 🔍 Buscar templates de Email e WhatsApp separadamente
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/templates?channel=email`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setEmailTemplates(res.data))
-      .catch((err) => console.error("Erro ao carregar templates de email", err));
-
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/templates?channel=whatsapp`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setWhatsappTemplates(res.data))
-      .catch((err) => console.error("Erro ao carregar templates de WhatsApp", err));
-  }, [router]);
+    fetchTemplates();
+  }, []);
 
   const cleanCampaign = {
     ...campaign,
     channels: Object.fromEntries(
-      Object.entries(campaign.channels).map(([key, value]) => [
-        key,
-        {
-          template: value.template ? value.template : undefined, // 🔥 Remove strings vazias
-          priority: value.priority,
-        },
-      ])
+      Object.entries(campaign.channels)
+        .filter(([_, value]) => value.template) // ✅ Remove canais sem template
+        .map(([key, value]) => [
+          key,
+          { template: value.template as string, priority: value.priority }, // ✅ Garante que template é string
+        ])
     ),
   };
 
   const createCampaign = async () => {
-    const token = localStorage.getItem("token");
+    // ✅ Verifica se ao menos um canal possui template selecionado
+    const hasValidTemplate = Object.values(cleanCampaign.channels).some(
+      (channel) => channel.template && channel.template.trim() !== ""
+    );
+
+    if (!hasValidTemplate) {
+      alert("Por favor, selecione ao menos um template (Email ou WhatsApp).");
+      return;
+    }
+
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, cleanCampaign, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await CampaignService.create(cleanCampaign);
       router.push("/campaigns");
     } catch (error) {
       console.error("Erro ao criar campanha", error);

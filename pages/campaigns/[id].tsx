@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
+import { CampaignService } from "@/services/campaign";
+import { Campaign } from "@/types/campaign";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Campaign } from "@/types/campaign";
 
 export default function CampaignDetailsPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -13,23 +13,19 @@ export default function CampaignDetailsPage() {
   const { id } = router.query;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
+    async function fetchCampaign() {
+      try {
+        if (id) {
+          const data = await CampaignService.getById(id as string);
+          setCampaign(data);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar campanha", error);
+        router.push("/campaigns");
+      }
     }
 
-    if (id) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => setCampaign(res.data))
-        .catch((err) => {
-          console.error("Erro ao carregar campanha", err);
-          router.push("/campaigns");
-        });
-    }
+    fetchCampaign();
   }, [id, router]);
 
   if (!campaign) {
@@ -51,7 +47,7 @@ export default function CampaignDetailsPage() {
           </p>
           <p>
             <strong>Tags:</strong>{" "}
-            {campaign.filters?.tags?.length > 0 ? campaign.filters.tags.join(", ") : "Nenhuma"}
+            {campaign.filters?.tags?.length ? campaign.filters.tags.join(", ") : "Nenhuma"}
           </p>
           <p>
             <strong>Gênero:</strong> {campaign.filters?.gender || "Todos"}

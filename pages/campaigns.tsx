@@ -1,44 +1,36 @@
 // File: pages/campaigns.tsx
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { Campaign } from "@/types/campaign";
+import { CampaignService } from "@/services/campaign";
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
+    async function fetchCampaigns() {
+      try {
+        const data = await CampaignService.getAll();
+        setCampaigns(data);
+      } catch (error) {
+        console.error("Erro ao carregar campanhas", error);
+      }
     }
 
-    axios
-      .get<Campaign[]>(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => setCampaigns(response.data))
-      .catch((error) => console.error("Erro ao carregar campanhas", error));
-  }, [router]);
+    fetchCampaigns();
+  }, []);
 
   const deleteCampaign = async (id: string) => {
-    const token = localStorage.getItem("token");
-
-    if (!window.confirm("Tem certeza que deseja excluir esta campanha?")) {
-      return;
-    }
+    if (!window.confirm("Tem certeza que deseja excluir esta campanha?")) return;
 
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await CampaignService.delete(id);
       setCampaigns((prev) => prev.filter((campaign) => campaign.id !== id));
     } catch (error) {
       console.error("Erro ao excluir campanha", error);
@@ -67,16 +59,16 @@ export default function CampaignsPage() {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => router.push(`/campaigns/edit?id=${campaign.id}`)}
+                      onClick={() => router.push(`/campaigns/${campaign.id}`)}
                     >
-                      Editar
+                      Ver detalhes
                     </Button>
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => router.push(`/campaigns/${campaign.id}`)}
+                      onClick={() => router.push(`/campaigns/edit?id=${campaign.id}`)}
                     >
-                      Ver detalhes
+                      Editar
                     </Button>
                     {campaign.status === "pendente" && (
                       <Button

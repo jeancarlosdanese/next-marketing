@@ -44,13 +44,9 @@ export default function DashboardPage() {
       <div className="flex-1 p-6 bg-gray-100">
         <Header user={user} />
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Campanhas Ativas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{campaigns?.length}</p>
-            </CardContent>
+          <Card className="w-full p-4 bg-card shadow-lg">
+            <h3 className="text-lg font-semibold">Campanhas Ativas</h3>
+            <p className="text-2xl font-bold">{campaigns?.length}</p>
           </Card>
         </div>
       </div>
