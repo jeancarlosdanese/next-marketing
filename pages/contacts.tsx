@@ -13,6 +13,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
+import Spinner from "@/components/Spinner";
 
 export default function ContactsPage() {
   const { user, loading } = useUser();
@@ -123,6 +124,9 @@ export default function ContactsPage() {
       ? allTags.slice(0, maxTags).join(", ") + "..."
       : allTags.join(", ");
   };
+
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
 
   return (
     <div className="flex min-h-screen">

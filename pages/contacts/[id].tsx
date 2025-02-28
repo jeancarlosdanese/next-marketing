@@ -7,6 +7,7 @@ import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/UserContext";
+import Spinner from "@/components/Spinner";
 
 export default function ContactDetailsPage() {
   const { user, loading } = useUser();
@@ -38,9 +39,9 @@ export default function ContactDetailsPage() {
     fetchContact();
   }, [loading, user, id, router]);
 
-  if (!contact) {
-    return <p className="text-center mt-10">Carregando...</p>;
-  }
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
+  if (!contact) return null; // 🔹 Evita exibição de conteúdo antes do carregamento
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

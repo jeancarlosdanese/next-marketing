@@ -9,6 +9,7 @@ import { CampaignService } from "@/services/campaign";
 import { Template } from "@/types/template";
 import { TemplateService } from "@/services/template";
 import { useUser } from "@/context/UserContext";
+import Spinner from "@/components/Spinner";
 
 export default function NewCampaignPage() {
   const { user, loading } = useUser();
@@ -75,6 +76,9 @@ export default function NewCampaignPage() {
       console.error("Erro ao criar campanha", error);
     }
   };
+
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

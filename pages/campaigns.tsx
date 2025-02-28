@@ -9,6 +9,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { Campaign } from "@/types/campaign";
 import { CampaignService } from "@/services/campaign";
+import Spinner from "@/components/Spinner";
 
 export default function CampaignsPage() {
   const { refreshUser } = useUser();
@@ -49,6 +50,9 @@ export default function CampaignsPage() {
       console.error("Erro ao excluir campanha", error);
     }
   };
+
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
 
   return (
     <div className="flex min-h-screen">

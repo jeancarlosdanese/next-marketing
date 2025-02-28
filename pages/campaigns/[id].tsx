@@ -7,6 +7,7 @@ import { CampaignService } from "@/services/campaign";
 import { Campaign } from "@/types/campaign";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Spinner from "@/components/Spinner";
 
 export default function CampaignDetailsPage() {
   const { user, loading } = useUser();
@@ -38,9 +39,9 @@ export default function CampaignDetailsPage() {
     fetchCampaign();
   }, [loading, user, id, router]);
 
-  if (!campaign) {
-    return <p className="text-center mt-10">Carregando...</p>;
-  }
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
+  if (!campaign) return null; // 🔹 Evita exibição de conteúdo antes do carregamento
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

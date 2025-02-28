@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 
 export default function DashboardPage() {
   const { user, loading } = useUser();
@@ -30,6 +31,9 @@ export default function DashboardPage() {
       .then((response) => setCampaigns(response.data))
       .catch((error) => console.error("Erro ao carregar campanhas", error));
   }, [loading, user]);
+
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
 
   return (
     <div className="flex min-h-screen">

@@ -10,6 +10,7 @@ import { Campaign } from "@/types/campaign";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Spinner from "@/components/Spinner";
 
 export default function EditCampaignPage() {
   const { user, loading } = useUser();
@@ -101,6 +102,10 @@ export default function EditCampaignPage() {
       console.error("Erro ao salvar campanha", error);
     }
   };
+
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
+  if (!campaign) return null; // 🔹 Evita exibição de conteúdo antes do carregamento
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

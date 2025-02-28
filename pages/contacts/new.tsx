@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from "@/context/UserContext";
+import Spinner from "@/components/Spinner";
 
 export default function NewContactPage() {
   const { user, loading } = useUser();
@@ -62,6 +63,9 @@ export default function NewContactPage() {
       router.push("/auth/login");
     }
   }, [loading, user, router]);
+
+  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
+  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
