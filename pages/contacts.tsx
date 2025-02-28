@@ -71,7 +71,7 @@ export default function ContactsPage() {
     }
 
     fetchContacts();
-  }, [filters, pagination.current_page]);
+  }, [loading, user, filters, pagination.current_page]);
 
   // Função para formatar telefone
   const formatPhone = (phone: string | undefined) => {

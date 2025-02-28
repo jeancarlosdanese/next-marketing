@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useUser } from "@/context/UserContext"; // 🔹 Importar o contexto do usuário
+import { useRouter } from "next/router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +20,9 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [identifier, setIdentifier] = useState("");
+  const [otp, setOtp] = useState(""); // 🔹 Estado para armazenar o OTP digitado
+  const { refreshUser } = useUser(); // 🔹 Atualizar o usuário após login
+  const router = useRouter();
 
   const {
     register,
@@ -35,14 +40,16 @@ export default function LoginPage() {
     }
   };
 
-  const verifyOTP = async (otp: string) => {
+  const verifyOTP = async () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`, {
         identifier,
         otp,
       });
+
       localStorage.setItem("token", response.data.token);
-      window.location.href = "/dashboard";
+      await refreshUser(); // 🔹 Atualiza o usuário no contexto global
+      router.push("/dashboard"); // 🔹 Redireciona para o Dashboard
     } catch (error) {
       console.error("Erro ao verificar OTP", error);
     }
@@ -70,8 +77,12 @@ export default function LoginPage() {
               <Input
                 type="text"
                 placeholder="Digite o OTP"
-                onChange={(e) => verifyOTP(e.target.value)}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
               />
+              <Button onClick={verifyOTP} className="w-full">
+                Confirmar Código
+              </Button>
             </div>
           )}
         </CardContent>

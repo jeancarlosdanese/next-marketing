@@ -38,7 +38,7 @@ export default function EditContactPage() {
     }
 
     fetchContact();
-  }, [id]);
+  }, [loading, user, id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (!contact) return;

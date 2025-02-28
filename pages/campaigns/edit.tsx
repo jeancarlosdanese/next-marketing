@@ -43,6 +43,7 @@ export default function EditCampaignPage() {
 
   useEffect(() => {
     if (loading || !user) return;
+
     async function fetchData() {
       try {
         const token = localStorage.getItem("token");
@@ -74,7 +75,7 @@ export default function EditCampaignPage() {
     }
 
     fetchData();
-  }, [id, isEditing, router]);
+  }, [loading, user, id, isEditing, router]);
 
   const saveCampaign = async () => {
     const cleanCampaign = {

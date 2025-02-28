@@ -36,7 +36,7 @@ export default function CampaignDetailsPage() {
     }
 
     fetchCampaign();
-  }, [id, router]);
+  }, [loading, user, id, router]);
 
   if (!campaign) {
     return <p className="text-center mt-10">Carregando...</p>;

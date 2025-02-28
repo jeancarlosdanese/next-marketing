@@ -11,6 +11,8 @@ import { Campaign } from "@/types/campaign";
 import { CampaignService } from "@/services/campaign";
 
 export default function CampaignsPage() {
+  const { refreshUser } = useUser();
+
   const { user, loading } = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const router = useRouter();
@@ -35,7 +37,7 @@ export default function CampaignsPage() {
     }
 
     fetchCampaigns();
-  }, []);
+  }, [loading, user]); // 🔹 Agora roda sempre que `user` for definido
 
   const deleteCampaign = async (id: string) => {
     if (!window.confirm("Tem certeza que deseja excluir esta campanha?")) return;

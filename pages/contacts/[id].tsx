@@ -36,7 +36,7 @@ export default function ContactDetailsPage() {
     }
 
     fetchContact();
-  }, [id, router]);
+  }, [loading, user, id, router]);
 
   if (!contact) {
     return <p className="text-center mt-10">Carregando...</p>;

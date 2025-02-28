@@ -43,7 +43,7 @@ export default function NewCampaignPage() {
     }
 
     fetchTemplates();
-  }, []);
+  }, [loading, user]);
 
   const cleanCampaign = {
     ...campaign,

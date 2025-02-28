@@ -24,7 +24,6 @@ export const ContactService = {
     });
 
     const fullUrl = `${API_URL}/contacts?${queryParams.toString()}`;
-    console.log("📡 Enviando requisição para:", fullUrl); // 🔍 Depuração
 
     try {
       const response = await axios.get(fullUrl, getAuthHeaders());

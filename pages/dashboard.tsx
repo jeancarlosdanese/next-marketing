@@ -29,7 +29,7 @@ export default function DashboardPage() {
       })
       .then((response) => setCampaigns(response.data))
       .catch((error) => console.error("Erro ao carregar campanhas", error));
-  }, [user, loading, router]);
+  }, [loading, user]);
 
   return (
     <div className="flex min-h-screen">
