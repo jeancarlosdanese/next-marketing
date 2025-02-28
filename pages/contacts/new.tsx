@@ -1,14 +1,16 @@
 // File: pages/contacts/new.tsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { ContactService } from "@/services/contact";
 import { Contact } from "@/types/contact";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUser } from "@/context/UserContext";
 
 export default function NewContactPage() {
+  const { user, loading } = useUser();
   const [contact, setContact] = useState<Omit<Contact, "id" | "created_at" | "updated_at">>({
     name: "",
     email: "",
@@ -53,6 +55,13 @@ export default function NewContactPage() {
       setError("Erro ao criar contato. Tente novamente.");
     }
   };
+
+  // 🔹 Redirecionamento seguro dentro do useEffect
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

@@ -1,42 +1,35 @@
 // File: pages/dashboard.tsx
 
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const { user, loading } = useUser();
   const [campaigns, setCampaigns] = useState([]);
   const router = useRouter();
 
+  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!loading && !user) {
       router.push("/auth/login");
-      return;
     }
+  }, [loading, user, router]);
 
-    // 🔍 Buscar dados do usuário
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => setUser(response.data))
-      .catch(() => router.push("/auth/login"));
+  useEffect(() => {
+    if (loading || !user) return;
 
-    // 🔍 Buscar campanhas ativas
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/campaigns?status=ativa`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then((response) => setCampaigns(response.data))
       .catch((error) => console.error("Erro ao carregar campanhas", error));
-  }, [router]);
-
-  if (!user) return <p>Carregando...</p>;
+  }, [user, loading, router]);
 
   return (
     <div className="flex min-h-screen">

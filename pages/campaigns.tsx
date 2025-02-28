@@ -1,5 +1,6 @@
 // File: pages/campaigns.tsx
 
+import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,20 @@ import { Campaign } from "@/types/campaign";
 import { CampaignService } from "@/services/campaign";
 
 export default function CampaignsPage() {
+  const { user, loading } = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const router = useRouter();
 
+  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+
     async function fetchCampaigns() {
       try {
         const data = await CampaignService.getAll();
@@ -41,7 +52,7 @@ export default function CampaignsPage() {
     <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex-1 p-6 bg-gray-100">
-        <Header user={{ email: "admin@hyberica.io" }} />
+        <Header user={user} />
         <div className="flex justify-between mb-6">
           <h1 className="text-2xl font-bold">Campanhas</h1>
           <Button onClick={() => router.push("/campaigns/new")}>Nova Campanha</Button>

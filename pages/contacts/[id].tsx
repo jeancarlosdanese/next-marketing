@@ -6,13 +6,23 @@ import { ContactService } from "@/services/contact";
 import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/context/UserContext";
 
 export default function ContactDetailsPage() {
+  const { user, loading } = useUser();
   const [contact, setContact] = useState<Contact | null>(null);
   const router = useRouter();
   const { id } = router.query;
 
+  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
     async function fetchContact() {
       try {
         if (id) {

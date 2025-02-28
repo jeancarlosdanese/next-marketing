@@ -1,5 +1,6 @@
 // File: pages/campaigns/[id].tsx
 
+import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CampaignService } from "@/services/campaign";
@@ -8,11 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function CampaignDetailsPage() {
+  const { user, loading } = useUser();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const router = useRouter();
   const { id } = router.query;
 
+  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
     async function fetchCampaign() {
       try {
         if (id) {

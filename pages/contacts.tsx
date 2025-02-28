@@ -1,5 +1,6 @@
 // File: pages/contacts.tsx
 
+import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { ContactService } from "@/services/contact";
@@ -14,6 +15,7 @@ import { format } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 
 export default function ContactsPage() {
+  const { user, loading } = useUser();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showAllTags, setShowAllTags] = useState<{ [key: string]: boolean }>({});
   const [filters, setFilters] = useState({
@@ -38,7 +40,16 @@ export default function ContactsPage() {
   });
   const router = useRouter();
 
+  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+
     async function fetchContacts() {
       try {
         const response = await ContactService.getPaginated(
@@ -61,10 +72,6 @@ export default function ContactsPage() {
 
     fetchContacts();
   }, [filters, pagination.current_page]);
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
-  };
 
   // Função para formatar telefone
   const formatPhone = (phone: string | undefined) => {
@@ -121,7 +128,7 @@ export default function ContactsPage() {
     <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex-1 p-6 bg-gray-100">
-        <Header user={{ email: "admin@hyberica.io" }} />
+        <Header user={user} />
         <div className="flex justify-between mb-6">
           <h1 className="text-2xl font-bold">Contatos</h1>
           <Button onClick={() => router.push("/contacts/new")}>Novo Contato</Button>

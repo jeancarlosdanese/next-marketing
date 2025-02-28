@@ -8,8 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CampaignService } from "@/services/campaign";
 import { Template } from "@/types/template";
 import { TemplateService } from "@/services/template";
+import { useUser } from "@/context/UserContext";
 
 export default function NewCampaignPage() {
+  const { user, loading } = useUser();
   const [campaign, setCampaign] = useState({
     name: "",
     description: "",
@@ -22,7 +24,15 @@ export default function NewCampaignPage() {
 
   const router = useRouter();
 
+  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
     async function fetchTemplates() {
       try {
         setEmailTemplates(await TemplateService.getByChannel("email"));
