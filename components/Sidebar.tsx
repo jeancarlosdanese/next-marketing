@@ -13,6 +13,11 @@ export function Sidebar() {
             Dashboard
           </Button>
         </Link>
+        <Link href="/templates">
+          <Button variant="ghost" className="w-full">
+            Templates
+          </Button>
+        </Link>
         <Link href="/campaigns">
           <Button variant="ghost" className="w-full">
             Campanhas

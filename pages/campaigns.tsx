@@ -12,8 +12,6 @@ import { CampaignService } from "@/services/campaign";
 import Spinner from "@/components/Spinner";
 
 export default function CampaignsPage() {
-  const { refreshUser } = useUser();
-
   const { user, loading } = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const router = useRouter();
