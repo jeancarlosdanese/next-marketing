@@ -70,6 +70,13 @@ export default function CampaignDetailsPage() {
 
           <div className="mt-6 flex gap-2">
             <Button
+              variant="default"
+              size="lg"
+              onClick={() => router.push(`/campaigns/${campaign.id}/audience`)}
+            >
+              🎯 Gerenciar Audiência
+            </Button>
+            <Button
               variant="outline"
               className="w-full"
               onClick={() => router.push(`/campaigns/edit?id=${campaign.id}`)}

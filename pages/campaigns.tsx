@@ -71,7 +71,16 @@ export default function CampaignsPage() {
                   <CardTitle>{campaign.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600">{campaign.status}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600">{campaign.status}</p>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => router.push(`/campaigns/${campaign.id}/audience`)}
+                    >
+                      🎯 Gerenciar Audiência
+                    </Button>
+                  </div>
                   <div className="mt-4 flex gap-2">
                     <Button
                       variant="outline"

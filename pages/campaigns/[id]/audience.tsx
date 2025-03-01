@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import Spinner from "@/components/Spinner";
 import { Trash2 } from "lucide-react"; // 🔹 Importando ícone de lixeira
 import { Audience } from "@/types/audience";
+import { UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CampaignAudiencePage() {
   const { user, loading } = useUser();
@@ -40,13 +42,13 @@ export default function CampaignAudiencePage() {
     total_records: 0,
     total_pages: 1,
     current_page: 1,
-    per_page: 12,
+    per_page: 20,
   });
   const [audiencePage, setAudiencePage] = useState<Omit<PaginatorType<Audience>, "data">>({
     total_records: 0,
     total_pages: 1,
     current_page: 1,
-    per_page: 12,
+    per_page: 20,
   });
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export default function CampaignAudiencePage() {
         per_page: response.per_page,
       });
     } catch (error) {
-      console.error("Erro ao carregar contatos disponíveis", error);
+      toast.error("Erro ao carregar contatos disponíveis.");
     }
   }
 
@@ -97,7 +99,7 @@ export default function CampaignAudiencePage() {
         per_page: response.per_page,
       });
     } catch (error) {
-      console.error("Erro ao carregar audiência da campanha", error);
+      toast.error("Erro ao carregar contatos da audiência.");
     }
   }
 
@@ -129,21 +131,43 @@ export default function CampaignAudiencePage() {
       fetchAudience();
       setSelectedContacts([]);
       setSelectAll(false);
+      toast.success("Contatos adicionados com sucesso!");
     } catch (error) {
-      console.error("Erro ao adicionar contatos à audiência", error);
+      toast.error("Erro ao adicionar contatos à audiência.");
     }
   };
+
+  const cleanFilters = Object.fromEntries(
+    Object.entries(filters).filter(([_, value]) => value !== "" && value !== undefined)
+  );
 
   const addAllContactsToAudience = async () => {
     if (contacts.length === 0) return;
 
+    const filtersToAdd = {
+      filters: cleanFilters,
+      current_page: availablesPage.current_page,
+      per_page: availablesPage.per_page,
+    };
+
     try {
-      const allContactIds = contacts.map((c) => c.id).filter(Boolean) as string[]; // 🔹 Remove valores undefined
-      await CampaignService.addContactsToAudience(campaignId as string, allContactIds);
+      const response = await CampaignService.addAllFilteredContactsToAudience(
+        campaignId as string,
+        filtersToAdd
+      );
       fetchContacts();
-      fetchAudience();
+
+      // Atualiza a audiência com os novos contatos
+      setAudiences(response.data);
+      setAudiencePage({
+        total_records: response.total_records,
+        total_pages: response.total_pages,
+        current_page: response.current_page,
+        per_page: response.per_page,
+      });
+      toast.success("Todos os contatos foram adicionados com sucesso!");
     } catch (error) {
-      console.error("Erro ao adicionar todos os contatos", error);
+      toast.error("Erro ao adicionar contatos à audiência.");
     }
   };
 
@@ -152,22 +176,22 @@ export default function CampaignAudiencePage() {
       await CampaignService.removeContactFromAudience(campaignId as string, contactId);
       fetchContacts();
       fetchAudience();
+      toast.success("Contato removido com sucesso!");
     } catch (error) {
-      console.error("Erro ao remover contato da audiência", error);
+      toast.error("Erro ao remover contato da audiência.");
     }
   };
 
   const removeAllContactsFromAudience = async () => {
-    if (audiences.length === 0) return;
+    if (audiences?.length === 0) return;
 
     try {
-      const allContactIds = audiences.map((c) => c.id).filter(Boolean) as string[]; // 🔹 Remove valores undefined
-      for (const contactId of allContactIds) {
-        await CampaignService.removeContactFromAudience(campaignId as string, contactId);
-      }
+      await CampaignService.removeAllAudience(campaignId as string);
+      fetchContacts();
       fetchAudience();
+      toast.success("Todos os contatos foram removidos com sucesso!");
     } catch (error) {
-      console.error("Erro ao remover todos os contatos da audiência", error);
+      toast.error("Erro ao remover contatos da audiência.");
     }
   };
 
@@ -263,73 +287,111 @@ export default function CampaignAudiencePage() {
           <Button onClick={addContactsToAudience} disabled={selectedContacts.length === 0}>
             Adicionar Selecionados
           </Button>
-          <Button onClick={addAllContactsToAudience}>Adicionar Todos</Button>
-          <Button onClick={removeAllContactsFromAudience} variant="destructive">
+          <Button onClick={addAllContactsToAudience} disabled={!contacts || contacts.length === 0}>
+            Adicionar Todos
+          </Button>
+          <Button
+            onClick={removeAllContactsFromAudience}
+            disabled={!audiences || audiences?.length === 0}
+            variant="destructive"
+          >
             Remover Todos
           </Button>
         </div>
 
         {/* Lista de Contatos Disponíveis */}
-        <h2 className="text-xl font-bold mb-4">Contatos Disponíveis</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-stone-200 p-4 rounded-lg">
-          {contacts?.map((contact) => (
-            <div
-              key={contact.id}
-              className="bg-white p-4 shadow rounded-lg flex justify-between items-center bg-stone-100"
-            >
-              <input
-                type="checkbox"
-                checked={contact.id ? selectedContacts.includes(contact.id) : false}
-                onChange={() => contact.id && handleSelectContact(contact.id)}
-                className="mr-2"
-              />
-              <span className="text-sm font-semibold">{contact.name}</span>
-            </div>
-          ))}
+        <div className="flex items-center justify-center my-6">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="px-4 text-stone-700 text-sm flex items-center">
+            <UserCheck size={18} className="mr-2 text-stone-700" /> Contatos Disponíveis
+          </span>
+          <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* Paginação */}
-        <Paginator
-          totalRecords={availablesPage.total_records}
-          totalPages={availablesPage.total_pages}
-          currentPage={availablesPage.current_page}
-          perPage={availablesPage.per_page}
-          onPageChange={(newPage) =>
-            setAvailablePage((prev) => ({ ...prev, current_page: newPage }))
-          }
-        />
+        {!contacts || contacts?.length === 0 ? (
+          <p className="text-gray-500 text-center p-4 bg-white shadow rounded-lg">
+            Nenhum contato disponível para adicionar.
+          </p>
+        ) : (
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-stone-200 p-4 rounded-lg">
+            {contacts?.map((contact) => (
+              <div
+                key={contact.id}
+                className="bg-white p-4 shadow rounded-lg flex justify-between items-center bg-stone-100"
+              >
+                <input
+                  type="checkbox"
+                  checked={contact.id ? selectedContacts.includes(contact.id) : false}
+                  onChange={() => contact.id && handleSelectContact(contact.id)}
+                  className="mr-2"
+                />
+                <span className="text-sm font-semibold">{contact.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Paginação dos Contatos Disponíveis (Ocultar se não houver registros) */}
+        {contacts?.length > 0 && (
+          <Paginator
+            totalRecords={availablesPage.total_records}
+            totalPages={availablesPage.total_pages}
+            currentPage={availablesPage.current_page}
+            perPage={availablesPage.per_page}
+            onPageChange={(newPage) =>
+              setAvailablePage((prev) => ({ ...prev, current_page: newPage }))
+            }
+          />
+        )}
 
         {/* Lista de Contatos na Audiência */}
-        <h2 className="text-xl font-bold mt-6 mb-4">Audiência Escolhida</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-neutral-200 p-4 rounded-lg">
-          {audiences?.map((audience) => (
-            <div
-              key={audience.id}
-              className="bg-white p-4 shadow rounded-lg flex justify-between items-center bg-neutral-100"
-            >
-              <span className="text-sm font-semibold">{audience.name}</span>
-              {/* Ícone de Remover com Tooltip */}
-              <button
-                onClick={() => audience.id && removeContactFromAudience(audience.id)}
-                className="text-red-600 hover:text-red-800 transition duration-200 p-2 rounded-full"
-                title="Remover"
-              >
-                <Trash2 size={20} />
-              </button>
-            </div>
-          ))}
+        <div className="flex items-center justify-center my-6">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="px-4 text-stone-700 text-sm flex items-center">
+            <UserCheck size={18} className="mr-2 text-stone-700" /> Contatos Adicionados
+          </span>
+          <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* Paginação */}
-        <Paginator
-          totalRecords={audiencePage.total_records}
-          totalPages={audiencePage.total_pages}
-          currentPage={audiencePage.current_page}
-          perPage={audiencePage.per_page}
-          onPageChange={(newPage) =>
-            setAudiencePage((prev) => ({ ...prev, current_page: newPage }))
-          }
-        />
+        {!audiences || audiences?.length === 0 ? (
+          <p className="text-gray-500 text-center p-4 bg-white shadow rounded-lg">
+            Nenhum contato adicionado à campanha ainda.
+          </p>
+        ) : (
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-neutral-200 p-4 rounded-lg">
+            {audiences?.map((audience) => (
+              <div
+                key={audience.id}
+                className="bg-white p-4 shadow rounded-lg flex justify-between items-center bg-neutral-100"
+              >
+                <span className="text-sm font-semibold">{audience.name}</span>
+                <button
+                  onClick={() => audience.id && removeContactFromAudience(audience.id)}
+                  className="text-red-600 hover:text-red-800 transition duration-200 p-2 rounded-full"
+                  title="Remover"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Paginação da Audiência (Ocultar se não houver registros) */}
+        {audiences?.length > 0 && (
+          <Paginator
+            totalRecords={audiencePage.total_records}
+            totalPages={audiencePage.total_pages}
+            currentPage={audiencePage.current_page}
+            perPage={audiencePage.per_page}
+            onPageChange={(newPage) =>
+              setAudiencePage((prev) => ({ ...prev, current_page: newPage }))
+            }
+          />
+        )}
+
+        {/* Separador */}
+        <hr className="my-6" />
       </div>
     </div>
   );

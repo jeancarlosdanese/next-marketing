@@ -92,6 +92,18 @@ export const CampaignService = {
     }
   },
 
+  async addAllFilteredContactsToAudience(campaignId: string, filters: any) {
+    try {
+      const url = `${API_URL}/campaigns/${campaignId}/add-all-audience`;
+      const response = await axios.post(url, { ...filters }, getAuthHeaders());
+
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao adicionar todos os contatos à audiência", error);
+      throw error;
+    }
+  },
+
   // 🔹 3️⃣ Remover um contato da audiência
   async removeContactFromAudience(campaignId: string, contactId: string) {
     try {
@@ -101,6 +113,17 @@ export const CampaignService = {
       await axios.delete(url, getAuthHeaders());
     } catch (error) {
       console.error("Erro ao remover contato da audiência", error);
+      throw error;
+    }
+  },
+
+  // 🔹 4️⃣ Remover toda a audiência
+  async removeAllAudience(campaignId: string) {
+    try {
+      const url = `${API_URL}/campaigns/${campaignId}/remove-all-audience`;
+      await axios.delete(url, getAuthHeaders());
+    } catch (error) {
+      console.error("Erro ao remover toda a audiência", error);
       throw error;
     }
   },

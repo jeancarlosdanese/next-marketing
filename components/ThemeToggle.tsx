@@ -1,6 +1,7 @@
 // File: components/ThemeToggle.tsx
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button"; // 🔹 Importando o botão do theme
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(
@@ -18,11 +19,12 @@ export default function ThemeToggle() {
   }, [theme]);
 
   return (
-    <button
-      className="p-2 bg-gray-200 dark:bg-gray-800 rounded-md text-black dark:text-white"
+    <Button
+      variant="outline" // 🔹 Mantém um visual consistente com o theme
+      size="icon" // 🔹 Usa o tamanho de botão apropriado
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
-      {theme === "dark" ? "☀️ Claro" : "🌙 Escuro"}
-    </button>
+      {theme === "dark" ? "☀️" : "🌙"}
+    </Button>
   );
 }
