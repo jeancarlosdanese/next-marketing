@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { ContactService } from "@/services/contact";
 import { Contact } from "@/types/contact";
-import { Paginator } from "@/types/paginator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
-import { Input } from "@/components/ui/input";
+import { Paginator as PaginatorType } from "@/types/paginator"; // 🔹 Renomeia o tipo
+import Paginator from "@/components/Paginator"; // 🔹 Mantém o nome do componente
 import { format } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import Spinner from "@/components/Spinner";
@@ -33,7 +33,7 @@ export default function ContactsPage() {
     perfil: "",
     eventos: "",
   });
-  const [pagination, setPagination] = useState<Omit<Paginator<Contact>, "data">>({
+  const [pagination, setPagination] = useState<Omit<PaginatorType<Contact>, "data">>({
     total_records: 0,
     total_pages: 1,
     current_page: 1,
@@ -227,50 +227,13 @@ export default function ContactsPage() {
         </div>
 
         {/* Paginação */}
-        <div className="flex flex-col items-center mt-6">
-          <p className="text-sm text-gray-600">
-            Exibindo{" "}
-            <span className="font-semibold">
-              {pagination.total_records === 0
-                ? 0
-                : (pagination.current_page - 1) * pagination.per_page + 1}
-            </span>
-            {" - "}
-            <span className="font-semibold">
-              {Math.min(pagination.current_page * pagination.per_page, pagination.total_records)}
-            </span>
-            {" de "}
-            <span className="font-semibold">{pagination.total_records}</span> registros
-          </p>
-
-          <div className="flex justify-center gap-4 mt-2">
-            <Button
-              onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  current_page: Math.max(prev.current_page - 1, 1),
-                }))
-              }
-              disabled={pagination.current_page === 1}
-            >
-              Anterior
-            </Button>
-            <span className="mx-4 mt-2 text-sm font-semibold text-gray-600 mb-4 align-middle">
-              Página {pagination.current_page} de {pagination.total_pages}
-            </span>
-            <Button
-              onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  current_page: Math.min(prev.current_page + 1, pagination.total_pages),
-                }))
-              }
-              disabled={pagination.current_page >= pagination.total_pages}
-            >
-              Próxima
-            </Button>
-          </div>
-        </div>
+        <Paginator
+          totalRecords={pagination.total_records}
+          totalPages={pagination.total_pages}
+          currentPage={pagination.current_page}
+          perPage={pagination.per_page}
+          onPageChange={(newPage) => setPagination((prev) => ({ ...prev, current_page: newPage }))}
+        />
       </div>
     </div>
   );
