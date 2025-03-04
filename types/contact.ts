@@ -23,3 +23,31 @@ export type Contact = {
   created_at?: string;
   updated_at?: string;
 };
+
+// Define a estrutura que recebemos do backend (simplificada)
+export interface FieldMapping {
+  source: string; // Ex: "email" ou "email,fone_celular" ou "todos_os_campos"
+  rules: string; // Armazena as regras personalizadas
+}
+
+export interface ContactImportConfig {
+  about_data: FieldMapping;
+  name: FieldMapping;
+  email: FieldMapping;
+  whatsapp: FieldMapping;
+  gender: FieldMapping;
+  birth_date: FieldMapping;
+  bairro: FieldMapping;
+  cidade: FieldMapping;
+  estado: FieldMapping;
+  interesses: FieldMapping;
+  perfil: FieldMapping;
+  eventos: FieldMapping;
+  history: FieldMapping;
+  last_contact_at: FieldMapping;
+
+  [key: string]: {
+    source: string;
+    rules: string;
+  };
+}

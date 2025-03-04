@@ -135,7 +135,12 @@ export default function ContactsPage() {
         <Header user={user} />
         <div className="flex justify-between mb-6">
           <h1 className="text-2xl font-bold">Contatos</h1>
-          <Button onClick={() => router.push("/contacts/new")}>Novo Contato</Button>
+          <div className="flex gap-4">
+            <Button onClick={() => router.push("/contacts/import/history")}>
+              Importar Contatos
+            </Button>
+            <Button onClick={() => router.push("/contacts/new")}>Novo Contato</Button>
+          </div>
         </div>
 
         {/* Lista de Contatos */}

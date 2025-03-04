@@ -6,9 +6,10 @@ import ThemeToggle from "./ThemeToggle";
 
 type HeaderProps = {
   user?: { email: string } | null;
+  title?: string;
 };
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, title }: HeaderProps) {
   const router = useRouter();
 
   const logout = () => {
@@ -18,7 +19,7 @@ export function Header({ user }: HeaderProps) {
 
   return (
     <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <h1 className="text-2xl font-bold">{title}</h1>
       <div className="flex items-center gap-4">
         <p className="text-sm">{user?.email ?? "Não autenticado"}</p>
         <ThemeToggle />

@@ -3,6 +3,9 @@
 import axios from "axios";
 import { Contact } from "@/types/contact";
 import { Paginator } from "@/types/paginator";
+import { toast } from "sonner";
+import { ContactImportConfig } from "@/types/contact";
+import { log } from "console";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const getAuthHeaders = () => ({
@@ -51,5 +54,64 @@ export const ContactService = {
 
   async delete(id: string) {
     await axios.delete(`${API_URL}/contacts/${id}`, getAuthHeaders());
+  },
+
+  async getImports() {
+    try {
+      const response = await axios.get(`${API_URL}/contacts/imports`, getAuthHeaders());
+      return response.data;
+    } catch (error) {
+      console.error("❌ Erro ao buscar importações:", error);
+      throw error;
+    }
+  },
+
+  /** 📌 Método para importar contatos via CSV */
+  async importContacts(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const headers = {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "multipart/form-data",
+    };
+
+    try {
+      const response = await axios.post(`${API_URL}/contacts/import`, formData, { headers });
+      return response.data; // Retorna import_id e preview
+    } catch (error) {
+      toast.error("Erro ao importar contatos");
+      console.error("❌ Erro ao importar contatos:", error);
+      throw error;
+    }
+  },
+
+  async getImportById(importId: string) {
+    try {
+      console.log("importId", importId);
+
+      const response = await axios.get(`${API_URL}/contacts/imports/${importId}`, getAuthHeaders());
+
+      console.log("response.data", response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error("❌ Erro ao buscar importação:", error);
+      throw error;
+    }
+  },
+
+  async updateImportConfig(importId: string, config: ContactImportConfig) {
+    try {
+      const response = await axios.put(
+        `${API_URL}/contacts/imports/${importId}`,
+        config, // Envia o objeto diretamente, sem envolver em { config }
+        getAuthHeaders()
+      );
+      return response.data;
+    } catch (error) {
+      console.error("❌ Erro ao atualizar configuração da importação:", error);
+      throw error;
+    }
   },
 };
