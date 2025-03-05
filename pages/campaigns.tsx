@@ -5,38 +5,39 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { Campaign } from "@/types/campaign";
 import { CampaignService } from "@/services/campaign";
 import Spinner from "@/components/Spinner";
+import Layout from "@/components/Layout";
+import { CheckCircle, Clock, XCircle } from "lucide-react"; // Ícones para status
 
-export default function CampaignsPage() {
+const statusIcons = {
+  ativa: { icon: <CheckCircle className="w-4 h-4 text-green-600" />, label: "Ativa" },
+  pendente: { icon: <Clock className="w-4 h-4 text-yellow-600" />, label: "Pendente" },
+  encerrada: { icon: <XCircle className="w-4 h-4 text-red-600" />, label: "Encerrada" },
+};
+
+const CampaignsPage = () => {
   const { user, loading } = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const router = useRouter();
 
-  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
+    } else if (user) {
+      fetchCampaigns();
     }
-  }, [loading, user, router]);
+  }, [loading, user]);
 
-  useEffect(() => {
-    if (loading || !user) return;
-
-    async function fetchCampaigns() {
-      try {
-        const data = await CampaignService.getAll();
-        setCampaigns(data);
-      } catch (error) {
-        console.error("Erro ao carregar campanhas", error);
-      }
+  const fetchCampaigns = async () => {
+    try {
+      const data = await CampaignService.getAll();
+      setCampaigns(data);
+    } catch (error) {
+      console.error("Erro ao carregar campanhas", error);
     }
-
-    fetchCampaigns();
-  }, [loading, user]); // 🔹 Agora roda sempre que `user` for definido
+  };
 
   const deleteCampaign = async (id: string) => {
     if (!window.confirm("Tem certeza que deseja excluir esta campanha?")) return;
@@ -49,55 +50,63 @@ export default function CampaignsPage() {
     }
   };
 
-  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
-  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
+  if (loading) return <Spinner />;
+  if (!user) return null;
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100">
-        <Header user={user} />
-        <div className="flex justify-between mb-6">
-          <h1 className="text-2xl font-bold">Campanhas</h1>
-          <Button onClick={() => router.push("/campaigns/new")}>Nova Campanha</Button>
-        </div>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {campaigns.length > 0 ? (
-            campaigns.map((campaign) => (
-              <Card key={campaign.id}>
-                <CardHeader>
+    <div className="p-6">
+      {/* 🔹 Ajuste para responsividade no título e botão */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl font-bold">Campanhas</h1>
+        <Button className="w-full sm:w-auto" onClick={() => router.push("/campaigns/new")}>
+          Nova Campanha
+        </Button>
+      </div>
+
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {campaigns.length > 0 ? (
+          campaigns.map((campaign) => {
+            const status = statusIcons[campaign.status as keyof typeof statusIcons] || {
+              icon: <Clock className="w-4 h-4 text-gray-600" />,
+              label: "Desconhecido",
+            };
+
+            return (
+              <Card key={campaign.id} className="flex flex-col justify-between">
+                <CardHeader className="flex justify-between items-start">
                   <CardTitle>{campaign.name}</CardTitle>
+                  <div className="flex items-center gap-1 text-gray-700 ml-auto">
+                    {status.icon}
+                    <span className="text-xs">{status.label}</span>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-600">{campaign.status}</p>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => router.push(`/campaigns/${campaign.id}/audience`)}
-                    >
-                      🎯 Gerenciar Audiência
-                    </Button>
-                  </div>
-                  <div className="mt-4 flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
                       variant="outline"
-                      className="w-full"
+                      size="sm"
                       onClick={() => router.push(`/campaigns/${campaign.id}`)}
                     >
                       Ver detalhes
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full"
+                      size="sm"
                       onClick={() => router.push(`/campaigns/edit?id=${campaign.id}`)}
                     >
                       Editar
                     </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => router.push(`/campaigns/${campaign.id}/audience`)}
+                    >
+                      🎯 Audiência
+                    </Button>
                     {campaign.status === "pendente" && (
                       <Button
                         variant="destructive"
-                        className="w-full"
+                        size="sm"
                         onClick={() => deleteCampaign(campaign.id)}
                       >
                         Excluir
@@ -106,12 +115,17 @@ export default function CampaignsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))
-          ) : (
-            <p className="text-gray-500">Nenhuma campanha encontrada.</p>
-          )}
-        </div>
+            );
+          })
+        ) : (
+          <p className="text-gray-500">Nenhuma campanha encontrada.</p>
+        )}
       </div>
     </div>
   );
-}
+};
+
+// Define o Layout global para a página
+CampaignsPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;
+
+export default CampaignsPage;

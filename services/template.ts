@@ -29,14 +29,12 @@ export const TemplateService = {
     await axios.post(`${API_URL}/templates`, data, getAuthHeaders());
   },
 
-  async updateTemplate(
-    id: string,
-    data: { name?: string; description?: string; channel?: "email" | "whatsapp" }
-  ) {
-    await axios.put(`${API_URL}/templates/${id}`, data, getAuthHeaders());
+  async update(id: string, contact: Partial<Template>) {
+    const response = await axios.put(`${API_URL}/templates/${id}`, contact, getAuthHeaders());
+    return response.data;
   },
 
-  async deleteTemplate(id: string) {
+  async delete(id: string) {
     await axios.delete(`${API_URL}/templates/${id}`, getAuthHeaders());
   },
 

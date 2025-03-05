@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Layout from "@/components/Layout";
 import { ContactService } from "@/services/contact";
 import { Contact } from "@/types/contact";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/UserContext";
 import Spinner from "@/components/Spinner";
+import { Button } from "@/components/ui/button";
 
-export default function ContactDetailsPage() {
+const ContactDetailPage = () => {
   const { user, loading } = useUser();
   const [contact, setContact] = useState<Contact | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { id } = router.query;
 
-  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
@@ -23,33 +23,41 @@ export default function ContactDetailsPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (!loading && !user) return;
+    if (!id) return;
+
     async function fetchContact() {
       try {
-        if (id) {
-          const data = await ContactService.getById(id as string);
-          setContact(data);
-        }
+        const data = await ContactService.getById(id as string);
+        setContact(data);
       } catch (error) {
         console.error("Erro ao carregar contato", error);
-        router.push("/contacts");
+        setError("Erro ao carregar contato.");
       }
     }
 
     fetchContact();
-  }, [loading, user, id, router]);
+  }, [loading, user, id]);
 
-  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
-  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
-  if (!contact) return null; // 🔹 Evita exibição de conteúdo antes do carregamento
+  if (loading || !user || !contact) return <Spinner />;
+  if (!user || !contact) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-lg p-6">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">{contact.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div className="p-4 sm:p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Detalhes do Contato</h1>
+        <Button variant="default" onClick={() => router.push(`/contacts/edit?id=${contact.id}`)}>
+          Editar Contato
+        </Button>
+      </div>
+
+      {error && <p className="text-red-500 text-center">{error}</p>}
+
+      <div className="bg-card shadow-lg p-6 rounded-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <p>
+            <strong>Nome:</strong> {contact.name}
+          </p>
           <p>
             <strong>Email:</strong> {contact.email || "Não informado"}
           </p>
@@ -57,45 +65,65 @@ export default function ContactDetailsPage() {
             <strong>WhatsApp:</strong> {contact.whatsapp || "Não informado"}
           </p>
           <p>
-            <strong>Gênero:</strong> {contact.gender || "Não informado"}
+            <strong>Nascimento:</strong> {contact.birth_date || "Não informado"}
           </p>
-          <p>
-            <strong>Data de Nascimento:</strong> {contact.birth_date || "Não informado"}
-          </p>
-          <p>
-            <strong>Endereço:</strong> {contact.bairro}, {contact.cidade} - {contact.estado}
-          </p>
-          <p>
-            <strong>Histórico:</strong> {contact.history || "Nenhum histórico disponível"}
-          </p>
+        </div>
 
-          {/* Tags */}
-          <div className="mt-4">
-            <p>
-              <strong>Interesses:</strong> {contact.tags?.interesses?.join(", ") || "Nenhum"}
-            </p>
-            <p>
-              <strong>Perfil:</strong> {contact.tags?.perfil?.join(", ") || "Nenhum"}
-            </p>
-            <p>
-              <strong>Eventos:</strong> {contact.tags?.eventos?.join(", ") || "Nenhum"}
+        <p className="mt-4">
+          <strong>Gênero:</strong> {contact.gender || "Não informado"}
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <p>
+            <strong>Bairro:</strong> {contact.bairro || "Não informado"}
+          </p>
+          <p>
+            <strong>Cidade:</strong> {contact.cidade || "Não informado"}
+          </p>
+          <p>
+            <strong>Estado:</strong> {contact.estado || "Não informado"}
+          </p>
+        </div>
+
+        {/* Exibição das listas (Interesses, Perfil e Eventos) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div>
+            <strong>Interesses:</strong>
+            <p className="text-sm text-gray-600">
+              {contact.tags?.interesses?.join(", ") || "Nenhum"}
             </p>
           </div>
 
-          <div className="mt-6 flex gap-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => router.push(`/contacts/edit?id=${contact.id}`)}
-            >
-              Editar
-            </Button>
-            <Button variant="outline" className="w-full" onClick={() => router.push("/contacts")}>
-              Voltar
-            </Button>
+          <div>
+            <strong>Perfil:</strong>
+            <p className="text-sm text-gray-600">{contact.tags?.perfil?.join(", ") || "Nenhum"}</p>
           </div>
-        </CardContent>
-      </Card>
+
+          <div>
+            <strong>Eventos:</strong>
+            <p className="text-sm text-gray-600">{contact.tags?.eventos?.join(", ") || "Nenhum"}</p>
+          </div>
+        </div>
+
+        {/* Histórico do contato */}
+        <p className="mt-4">
+          <strong>Histórico:</strong>
+        </p>
+        <p className="text-gray-600 bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
+          {contact.history || "Nenhuma informação registrada."}
+        </p>
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <Button variant="outline" onClick={() => router.push("/contacts")}>
+          Voltar
+        </Button>
+      </div>
     </div>
   );
-}
+};
+
+// Define o Layout global para a página
+ContactDetailPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;
+
+export default ContactDetailPage;

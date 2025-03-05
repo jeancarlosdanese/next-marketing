@@ -2,22 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { ContactService } from "@/services/contact";
-import { Contact } from "@/types/contact";
+import Layout from "@/components/Layout";
+import LayoutForm from "@/components/LayoutForm";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContactService } from "@/services/contact";
+import { Textarea } from "@/components/ui/textarea";
+import { Contact } from "@/types/contact";
 import { useUser } from "@/context/UserContext";
 import Spinner from "@/components/Spinner";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export default function EditContactPage() {
+const EditContactPage = () => {
   const { user, loading } = useUser();
   const [contact, setContact] = useState<Omit<Contact, "created_at" | "updated_at"> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { id } = router.query;
 
-  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
@@ -25,10 +34,10 @@ export default function EditContactPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (loading || !user) return;
-    async function fetchContact() {
-      if (!id) return;
+    if (!loading && !user) return;
+    if (!id) return;
 
+    async function fetchContact() {
       try {
         const data = await ContactService.getById(id as string);
         setContact(data);
@@ -46,17 +55,6 @@ export default function EditContactPage() {
     setContact({ ...contact, [e.target.name]: e.target.value });
   };
 
-  const handleTagsChange = (category: "interesses" | "perfil" | "eventos", value: string) => {
-    if (!contact) return;
-    setContact((prev) => ({
-      ...prev!,
-      tags: {
-        ...prev!.tags,
-        [category]: [...(prev!.tags?.[category] || []), value],
-      },
-    }));
-  };
-
   const handleSubmit = async () => {
     if (!contact) return;
 
@@ -67,6 +65,7 @@ export default function EditContactPage() {
 
     try {
       await ContactService.update(id as string, contact);
+      toast.success("Contato atualizado com sucesso!");
       router.push("/contacts");
     } catch (error) {
       console.error("Erro ao atualizar contato", error);
@@ -74,135 +73,158 @@ export default function EditContactPage() {
     }
   };
 
-  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
-  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
-  if (!contact) return null; // 🔹 Evita exibição de conteúdo antes do carregamento
+  const handleTagsChange = (
+    category: "interesses" | "perfil" | "eventos",
+    value: string,
+    resetInput: () => void
+  ) => {
+    if (!value.trim()) return;
+    setContact((prev) => ({
+      ...prev!,
+      tags: {
+        ...prev!.tags,
+        [category]: [...(prev!.tags?.[category] || []), value.trim()],
+      },
+    }));
+
+    resetInput();
+  };
+
+  const handleTagRemove = (category: "interesses" | "perfil" | "eventos", tag: string) => {
+    setContact((prev) => ({
+      ...prev!,
+      tags: {
+        ...prev!.tags,
+        [category]: prev!.tags?.[category]?.filter((t) => t !== tag) || [],
+      },
+    }));
+  };
+
+  if (loading || !user || !contact) return <Spinner />;
+  if (!user || !contact) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-lg p-6">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">Editar Contato</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && <p className="text-red-500 text-center">{error}</p>}
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl font-bold mb-6 sm:mb-4">Editar Contato</h1>
 
+      <LayoutForm onSave={handleSubmit}>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
           <Input name="name" value={contact.name} onChange={handleChange} placeholder="Nome *" />
           <Input
             name="email"
             value={contact.email || ""}
             onChange={handleChange}
             placeholder="Email"
-            className="mt-2"
           />
           <Input
             name="whatsapp"
             value={contact.whatsapp || ""}
             onChange={handleChange}
             placeholder="WhatsApp"
-            className="mt-2"
           />
-
-          <label className="block mt-4">Gênero:</label>
-          <select
-            name="gender"
-            value={contact.gender || ""}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">Selecionar</option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="outro">Outro</option>
-          </select>
-
-          <label className="block mt-4">Data de Nascimento:</label>
           <Input
-            type="date"
             name="birth_date"
+            type="date"
             value={contact.birth_date || ""}
             onChange={handleChange}
           />
+        </div>
 
+        <label className="block mt-3 sm:mt-4">Gênero:</label>
+        <Select
+          value={contact.gender || ""}
+          onValueChange={(value: "masculino" | "feminino" | "outro") =>
+            setContact({ ...contact, gender: value })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecionar Gênero" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="masculino">Masculino</SelectItem>
+            <SelectItem value="feminino">Feminino</SelectItem>
+            <SelectItem value="outro">Outro</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
           <Input
             name="bairro"
             value={contact.bairro || ""}
             onChange={handleChange}
             placeholder="Bairro"
-            className="mt-2"
           />
           <Input
             name="cidade"
             value={contact.cidade || ""}
             onChange={handleChange}
             placeholder="Cidade"
-            className="mt-2"
           />
           <Input
             name="estado"
             value={contact.estado || ""}
             onChange={handleChange}
             placeholder="Estado"
-            className="mt-2"
           />
+        </div>
 
-          <label className="block mt-4">Histórico:</label>
-          <textarea
-            name="history"
-            value={contact.history || ""}
-            onChange={(e) => setContact({ ...contact, history: e.target.value })}
-            className="w-full p-2 border rounded"
-            rows={3}
-          ></textarea>
-
-          {/* Campos para Tags */}
-          <div className="mt-4">
-            <label>Interesses:</label>
+        {/* 🔹 Campos de Listas (Interesses, Perfil e Eventos) - Reformulados com Badge */}
+        {["interesses", "perfil", "eventos"].map((category) => (
+          <div key={category}>
+            <label className="block mt-3 sm:mt-4 capitalize">{category}:</label>
             <Input
-              placeholder="Adicione um interesse"
-              onKeyDown={(e) =>
-                e.key === "Enter" && handleTagsChange("interesses", e.currentTarget.value)
-              }
+              placeholder={`Adicione um ${category}`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const input = e.currentTarget;
+                  handleTagsChange(
+                    category as "interesses" | "perfil" | "eventos",
+                    input.value,
+                    () => (input.value = "")
+                  );
+                }
+              }}
             />
-            <p className="text-sm text-gray-600">
-              {contact.tags?.interesses?.join(", ") || "Nenhum"}
-            </p>
-          </div>
 
-          <div className="mt-4">
-            <label>Perfil:</label>
-            <Input
-              placeholder="Adicione um perfil"
-              onKeyDown={(e) =>
-                e.key === "Enter" && handleTagsChange("perfil", e.currentTarget.value)
-              }
-            />
-            <p className="text-sm text-gray-600">{contact.tags?.perfil?.join(", ") || "Nenhum"}</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {contact.tags?.[category as "interesses" | "perfil" | "eventos"]?.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="flex items-center space-x-2 px-2 py-1 text-xs font-semibold shadow-md transition
+                    bg-teal-700 border-teal-800 text-white hover:bg-teal-800 hover:border-teal-900
+                    dark:bg-teal-700 dark:border-teal-800 dark:hover:bg-teal-800 dark:hover:border-teal-900"
+                >
+                  {tag}
+                  <button
+                    className="ml-1 text-white hover:text-gray-100 focus:outline-none"
+                    onClick={() =>
+                      handleTagRemove(category as "interesses" | "perfil" | "eventos", tag)
+                    }
+                  >
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
           </div>
+        ))}
 
-          <div className="mt-4">
-            <label>Eventos:</label>
-            <Input
-              placeholder="Adicione um evento"
-              onKeyDown={(e) =>
-                e.key === "Enter" && handleTagsChange("eventos", e.currentTarget.value)
-              }
-            />
-            <p className="text-sm text-gray-600">{contact.tags?.eventos?.join(", ") || "Nenhum"}</p>
-          </div>
-
-          <Button onClick={handleSubmit} className="w-full mt-4">
-            Salvar Alterações
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full mt-2"
-            onClick={() => router.push("/contacts")}
-          >
-            Cancelar
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Campo Histórico */}
+        <label className="block mt-3 sm:mt-4">Histórico:</label>
+        <Textarea
+          placeholder="Type your message here."
+          value={contact.history || ""}
+          onChange={(e) => setContact({ ...contact, history: e.target.value })}
+          className="w-full p-2 border rounded resize-y min-h-[115px]"
+        />
+      </LayoutForm>
     </div>
   );
-}
+};
+
+EditContactPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;
+
+export default EditContactPage;

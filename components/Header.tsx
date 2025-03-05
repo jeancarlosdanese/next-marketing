@@ -1,32 +1,46 @@
 // File: components/Header.tsx
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
+import { useUser } from "@/context/UserContext";
 import ThemeToggle from "./ThemeToggle";
+import { Menu } from "lucide-react";
 
 type HeaderProps = {
-  user?: { email: string } | null;
+  toggleSidebar: () => void;
   title?: string;
 };
 
-export function Header({ user, title }: HeaderProps) {
-  const router = useRouter();
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    router.push("/auth/login");
-  };
+export function Header({ toggleSidebar, title }: HeaderProps) {
+  const { user, logout } = useUser();
 
   return (
-    <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold">{title}</h1>
+    <header className="flex justify-between items-center p-4 bg-background border-b">
+      {/* 🔹 Botão de menu para abrir a Sidebar no mobile */}
+      <Button variant="ghost" className="sm:hidden" onClick={toggleSidebar}>
+        <Menu className="w-6 h-6" />
+      </Button>
+
+      {/* 🔹 Título da Página */}
+      <h1 className="text-xl font-semibold text-center flex-1">{title}</h1>
+
       <div className="flex items-center gap-4">
-        <p className="text-sm">{user?.email ?? "Não autenticado"}</p>
+        {user ? (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center bg-gray-300 text-gray-800 rounded-full text-sm font-semibold">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <p className="text-sm">{user.email}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-red-500">Não autenticado</p>
+        )}
+
         <ThemeToggle />
+
         <Button variant="outline" onClick={logout}>
           Sair
         </Button>
       </div>
-    </div>
+    </header>
   );
 }

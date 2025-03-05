@@ -4,13 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 
+import Layout from "@/components/Layout";
 import { ContactService } from "@/services/contact";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 import ImportDetails from "@/components/ImportDetails";
@@ -43,6 +42,7 @@ export default function EditImportPage() {
   }));
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [selectedTab, setSelectedTab] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
@@ -56,16 +56,13 @@ export default function EditImportPage() {
           setConfig((prevConfig) => {
             if (!data.config || typeof data.config !== "object") return prevConfig;
 
-            return Object.keys(prevConfig).reduce(
-              (acc, key) => {
-                acc[key as keyof ContactImportConfig] = {
-                  source: data.config[key]?.source || "",
-                  rules: typeof data.config[key]?.rules === "string" ? data.config[key].rules : "",
-                };
-                return acc;
-              },
-              { ...prevConfig }
-            );
+            return Object.keys(prevConfig || {}).reduce((acc, key) => {
+              acc[key as keyof ContactImportConfig] = {
+                source: data.config[key]?.source || "",
+                rules: typeof data.config[key]?.rules === "string" ? data.config[key].rules : "",
+              };
+              return acc;
+            }, {} as ContactImportConfig);
           });
         }
 
@@ -74,53 +71,63 @@ export default function EditImportPage() {
         }
       } catch (error) {
         toast.error("Erro ao carregar importação.");
+      } finally {
+        setIsLoading(false);
       }
     }
 
     fetchImport();
   }, [id]);
 
-  if (loading) return <Spinner />;
-  if (!user) return null;
-  if (!config) return <p>Configuração não encontrada.</p>;
+  const handleSaveConfig = async () => {
+    if (!config) return;
+    try {
+      await ContactService.updateImportConfig(id as string, config);
+      toast.success("Configuração salva com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao salvar configuração.");
+    }
+  };
+
+  if (loading || isLoading) return <Spinner />;
+  if (!user || !config)
+    return <p className="text-center text-gray-500">Configuração não encontrada.</p>;
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1 p-6 bg-gray-100">
-          <Header user={user} />
+    <div className="p-4 sm:p-6">
+      {/* 🔹 Título da Página */}
+      <h1 className="text-2xl font-bold mb-6">Editar Importação</h1>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Editar Importação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TabGroup selectedIndex={selectedTab} onChange={setSelectedTab}>
-                <TabList className="flex border-b">
-                  <Tab className="px-4 py-2 text-sm font-medium border-b-2">Detalhes</Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium border-b-2">Configuração</Tab>
-                </TabList>
+      <DndProvider backend={HTML5Backend}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuração da Importação</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Detalhes</TabsTrigger>
+                <TabsTrigger value="config">Configuração</TabsTrigger>
+              </TabsList>
 
-                <TabPanels className="mt-4">
-                  <TabPanel>
-                    <ImportDetails importData={importData} />
-                  </TabPanel>
-                  <TabPanel>
-                    <ImportConfig config={config} setConfig={setConfig} csvHeaders={csvHeaders} />
-                  </TabPanel>
-                </TabPanels>
-              </TabGroup>
-            </CardContent>
-          </Card>
-        </div>
+              <TabsContent value="details">
+                <ImportDetails importData={importData} />
+              </TabsContent>
+              <TabsContent value="config">
+                <ImportConfig config={config} setConfig={setConfig} csvHeaders={csvHeaders} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </DndProvider>
+
+      {/* 🔹 Barra de Ações no Rodapé */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background shadow-md p-4 flex justify-center">
+        <Button onClick={handleSaveConfig}>Salvar Configuração</Button>
       </div>
-
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow p-4 flex justify-center">
-        <Button onClick={() => ContactService.updateImportConfig(id as string, config)}>
-          Salvar Configuração
-        </Button>
-      </div>
-    </DndProvider>
+    </div>
   );
 }
+
+// Aplica o Layout global à página
+EditImportPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;

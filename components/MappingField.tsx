@@ -3,14 +3,18 @@
 import React from "react";
 import { useDrop } from "react-dnd";
 import { ContactImportConfig } from "@/types/contact";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils"; // Utilitário para classes condicionais
 
 interface MappingFieldProps {
-  fieldKey: string;
+  fieldKey: keyof ContactImportConfig;
   config: ContactImportConfig;
   setConfig: React.Dispatch<React.SetStateAction<ContactImportConfig>>;
 }
 
-export default function MappingField({ fieldKey, config, setConfig }: MappingFieldProps) {
+const MappingField: React.FC<MappingFieldProps> = ({ fieldKey, config, setConfig }) => {
   const fieldMapping = config[fieldKey] || { source: "", rules: "" };
 
   // Permite que as tags sejam soltas no campo
@@ -19,7 +23,6 @@ export default function MappingField({ fieldKey, config, setConfig }: MappingFie
     drop: (item: { name: string }) => {
       const newTag = item.name.trim();
 
-      // Se já existe algo em source, mesclar valores evitando duplicações
       const existingSources = fieldMapping.source
         .split(",")
         .map((s) => s.trim())
@@ -29,12 +32,11 @@ export default function MappingField({ fieldKey, config, setConfig }: MappingFie
         existingSources.push(newTag);
       }
 
-      // Atualiza o estado global do config
       setConfig((prev) => ({
         ...prev,
         [fieldKey]: {
           ...prev[fieldKey],
-          source: existingSources.join(","), // Exemplo: "nome,email"
+          source: existingSources.join(","),
         },
       }));
     },
@@ -43,7 +45,7 @@ export default function MappingField({ fieldKey, config, setConfig }: MappingFie
     }),
   });
 
-  // Remove uma tag associada ao campo
+  // Função para remover tag
   const handleRemoveTag = (tag: string) => {
     const newSources = fieldMapping.source
       .split(",")
@@ -61,12 +63,11 @@ export default function MappingField({ fieldKey, config, setConfig }: MappingFie
 
   // Atualiza as regras
   const handleRulesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
     setConfig((prev) => ({
       ...prev,
       [fieldKey]: {
         source: prev[fieldKey]?.source || "",
-        rules: value || "",
+        rules: e.target.value || "",
       },
     }));
   };
@@ -79,41 +80,65 @@ export default function MappingField({ fieldKey, config, setConfig }: MappingFie
     : [];
 
   return (
-    <div className="border p-3 rounded" ref={dropRef as (node: HTMLDivElement | null) => void}>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold capitalize">{fieldKey}</h3>
-      </div>
+    <Card
+      className={cn(
+        "p-3 rounded-md shadow-md transition border",
+        isOver ? "border-teal-600 bg-teal-200 dark:bg-teal-900" : "border-border",
+        "dark:bg-gray-900 dark:border-gray-900 dark:hover:border-teal-600"
+      )}
+      ref={dropRef as (node: HTMLDivElement | null) => void}
+    >
+      <h3 className="text-sm font-semibold capitalize mb-2 text-gray-700 dark:text-gray-300">
+        {fieldKey}
+      </h3>
 
       {/* Área de dropzone */}
       <div
-        className={`min-h-[40px] flex flex-wrap gap-2 p-2 border rounded ${isOver ? "bg-blue-50" : "bg-white"}`}
+        className={cn(
+          "min-h-[40px] flex flex-wrap gap-2 p-2 border rounded-md transition",
+          isOver
+            ? "bg-teal-700 border-teal-800 dark:bg-teal-700"
+            : "bg-muted border-border dark:bg-gray-800"
+        )}
       >
         {assignedTags.length === 0 ? (
-          <span className="text-gray-400 text-sm">Arraste tags aqui</span>
+          <span className="text-gray-400 dark:text-gray-500 text-sm">Arraste tags aqui</span>
         ) : (
           assignedTags.map((tag) => (
-            <span
+            <Badge
               key={tag}
-              className="inline-flex border bg-green-200 text-green-800 text-xs px-2 py-1 rounded"
+              variant="secondary"
+              className={cn(
+                "flex items-center space-x-2 text-white px-2 py-1 text-xs font-semibold shadow-md transition",
+                "dark:bg-teal-700 dark:border-teal-800 dark:hover:bg-teal-800 dark:hover:border-teal-900",
+                "bg-teal-700 border-teal-800 hover:bg-teal-800 hover:border-teal-900"
+              )}
             >
               {tag}
-              <button className="ml-1 font-bold text-red-600" onClick={() => handleRemoveTag(tag)}>
+              <button
+                className="ml-1 text-white dark:text-gray-200 hover:text-gray-100 dark:hover:text-gray-300 focus:outline-none"
+                onClick={() => handleRemoveTag(tag)}
+              >
                 ×
               </button>
-            </span>
+            </Badge>
           ))
         )}
       </div>
 
       {/* Campo de regras */}
-      <label className="block mt-2 text-sm font-medium text-gray-700">Regras adicionais:</label>
-      <textarea
-        className="block w-full rounded border p-2 text-sm"
+      <label className="block mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+        Regras adicionais:
+      </label>
+      <Textarea
+        className="w-full border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-teal-400 focus:border-teal-600"
         rows={2}
         placeholder="Instruções de mapeamento"
         value={fieldMapping.rules || ""}
         onChange={handleRulesChange}
       />
-    </div>
+    </Card>
   );
-}
+};
+
+export default React.memo(MappingField);

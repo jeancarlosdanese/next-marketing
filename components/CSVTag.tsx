@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useDrag } from "react-dnd";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function CSVTag({ name }: { name: string }) {
   const [{ isDragging }, dragRef] = useDrag({
@@ -13,11 +15,18 @@ export default function CSVTag({ name }: { name: string }) {
   });
 
   return (
-    <span
-      ref={dragRef as (node: HTMLSpanElement | null) => void}
-      className={`inline-flex border items-center bg-green-200 text-green-800 text-xs px-2 py-1 rounded lowercase cursor-move ${isDragging ? "opacity-50" : ""}`}
-    >
-      {name}
+    <span ref={dragRef as (node: HTMLSpanElement | null) => void}>
+      <Badge
+        variant="secondary"
+        className={cn(
+          "cursor-move px-2 py-1 text-xs font-semibold shadow-md transition flex items-center space-x-2 border",
+          "ddark:bg-teal-700 ark:border-teal-800 dark:text-white dark:hover:bg-teal-800 dark:hover:border-teal-900",
+          "bg-teal-700 border-teal-800 text-white hover:bg-teal-800 hover:border-teal-900",
+          isDragging && "opacity-50"
+        )}
+      >
+        {name}
+      </Badge>
     </span>
   );
 }

@@ -4,24 +4,30 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { UserService } from "@/services/user";
 import { useRouter } from "next/router";
 
-type User = {
+// Tipo correto baseado no retorno do backend
+type Account = {
+  id: string; // UUID
+  name: string;
   email: string;
+  whatsapp: string;
 };
 
 type UserContextType = {
-  user: User | null;
+  user: Account | null;
   loading: boolean;
   refreshUser: () => Promise<void>;
+  logout: () => void;
 };
 
 const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
   refreshUser: async () => {},
+  logout: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -29,10 +35,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     if (typeof window === "undefined") return;
 
     const token = localStorage.getItem("token");
-    // console.log("🔍 Token lido do localStorage:", token);
-
     if (!token) {
-      // console.warn("❌ Nenhum token encontrado. Redirecionando para login...");
       setUser(null);
       setLoading(false);
       router.push("/auth/login");
@@ -40,16 +43,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      const userData = await UserService.getAuthenticatedUser();
-      // console.log("✅ Usuário autenticado:", userData);
+      const userData: Account = await UserService.getAuthenticatedUser();
       setUser(userData);
     } catch (error: any) {
       if (error.response?.status === 401) {
-        // console.warn("❌ Token expirado ou inválido. Redirecionando...");
         localStorage.removeItem("token");
         router.push("/auth/login");
-      } else {
-        console.error("⚠️ Erro ao buscar usuário autenticado", error);
       }
       setUser(null);
     } finally {
@@ -57,12 +56,18 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    router.push("/auth/login");
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading, refreshUser: fetchUser }}>
+    <UserContext.Provider value={{ user, loading, refreshUser: fetchUser, logout }}>
       {children}
     </UserContext.Provider>
   );

@@ -2,8 +2,20 @@
 
 import { useState } from "react";
 import { ContactService } from "@/services/contact";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-const UploadCSV = () => {
+export default function UploadCSV() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string[][] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,70 +28,84 @@ const UploadCSV = () => {
   };
 
   const handleUpload = async () => {
-    if (!file) return alert("Selecione um arquivo CSV primeiro!");
+    if (!file) {
+      toast.error("Selecione um arquivo CSV primeiro!");
+      return;
+    }
 
     setLoading(true);
 
     try {
       const data = await ContactService.importContacts(file);
       setPreview(data.preview); // Atualiza o preview com os dados retornados pela API
+      toast.success("Arquivo enviado com sucesso!");
     } catch (error) {
-      alert("Erro ao importar o CSV. Verifique o formato do arquivo.");
+      toast.error("Erro ao importar o CSV. Verifique o formato do arquivo.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-lg mx-auto p-4 bg-white shadow-md rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Importar Contatos</h2>
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl font-bold mb-6">Importar Contatos</h1>
 
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-        className="block w-full p-2 border border-gray-300 rounded mb-4"
-      />
+      <Card className="max-w-3xl mx-auto">
+        <CardHeader>
+          <CardTitle>Importação de Arquivo CSV</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Input para upload */}
+          <Input type="file" accept=".csv" onChange={handleFileChange} />
 
-      {file && (
-        <div className="mb-4">
-          <p>
-            <strong>Arquivo:</strong> {file.name}
-          </p>
-          <p>
-            <strong>Tamanho:</strong> {(file.size / 1024).toFixed(2)} KB
-          </p>
-        </div>
-      )}
+          {file && (
+            <div className="mt-4 text-sm text-muted-foreground">
+              <p>
+                <strong>Arquivo:</strong> {file.name}
+              </p>
+              <p>
+                <strong>Tamanho:</strong> {(file.size / 1024).toFixed(2)} KB
+              </p>
+            </div>
+          )}
 
-      <button
-        onClick={handleUpload}
-        disabled={!file || loading}
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-      >
-        {loading ? "Enviando..." : "Enviar CSV"}
-      </button>
+          {/* Botão de envio */}
+          <Button
+            onClick={handleUpload}
+            disabled={!file || loading}
+            className="mt-4 w-full sm:w-auto"
+          >
+            {loading ? "Enviando..." : "Enviar CSV"}
+          </Button>
 
-      {preview && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Pré-visualização</h3>
-          <table className="w-full border border-gray-300">
-            <tbody>
-              {preview.map((row, index) => (
-                <tr key={index} className="border">
-                  {row.map((cell, i) => (
-                    <td key={i} className="p-2 border">
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+          {/* Pré-visualização do CSV */}
+          {preview && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Pré-visualização</h3>
+              <div className="overflow-x-auto border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {preview[0].map((cell, i) => (
+                        <TableHead key={i}>{cell}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {preview.slice(1).map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <TableCell key={cellIndex}>{cell}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default UploadCSV;
+}
