@@ -2,7 +2,6 @@
 
 export type Campaign = {
   id: string;
-  account_id: string;
   name: string;
   description?: string;
   channels: Record<string, { template: string; priority: number }>;

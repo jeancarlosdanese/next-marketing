@@ -8,14 +8,23 @@ import { Contact } from "@/types/contact";
 import { Paginator as PaginatorType } from "@/types/paginator";
 import Paginator from "@/components/Paginator";
 import { Button } from "@/components/ui/button";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Spinner from "@/components/Spinner";
-import { Trash2 } from "lucide-react"; // 🔹 Importando ícone de lixeira
+import { CheckSquare, PlusCircle, Square, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { Audience } from "@/types/audience";
-import { UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import Layout from "@/components/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function CampaignAudiencePage() {
   const { user, loading } = useUser();
@@ -42,13 +51,13 @@ export default function CampaignAudiencePage() {
     total_records: 0,
     total_pages: 1,
     current_page: 1,
-    per_page: 20,
+    per_page: 12,
   });
   const [audiencePage, setAudiencePage] = useState<Omit<PaginatorType<Audience>, "data">>({
     total_records: 0,
     total_pages: 1,
     current_page: 1,
-    per_page: 20,
+    per_page: 12,
   });
 
   useEffect(() => {
@@ -59,7 +68,6 @@ export default function CampaignAudiencePage() {
 
   useEffect(() => {
     if (loading || !user || !campaignId) return;
-
     fetchContacts();
     fetchAudience();
   }, [user, loading, campaignId, filters, availablesPage.current_page, audiencePage.current_page]);
@@ -117,7 +125,7 @@ export default function CampaignAudiencePage() {
     if (selectAll) {
       setSelectedContacts([]);
     } else {
-      setSelectedContacts(contacts.map((c) => c.id).filter(Boolean) as string[]);
+      setSelectedContacts(contacts?.map((c) => c.id).filter(Boolean) as string[]);
     }
     setSelectAll(!selectAll);
   };
@@ -138,7 +146,9 @@ export default function CampaignAudiencePage() {
   };
 
   const cleanFilters = Object.fromEntries(
-    Object.entries(filters).filter(([_, value]) => value !== "" && value !== undefined)
+    Object.entries(filters).filter(
+      ([_, value]) => value !== undefined && value !== "" && value !== "none"
+    )
   );
 
   const addAllContactsToAudience = async () => {
@@ -199,200 +209,262 @@ export default function CampaignAudiencePage() {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100">
-        <Header user={user} />
+    <Layout>
+      <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Audiência da Campanha</h1>
-
         {/* Filtros */}
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 p-4 bg-white shadow rounded-lg">
-          <Input
-            name="name"
-            value={filters.name}
-            onChange={handleFilterChange}
-            placeholder="Nome"
-          />
-          <Input
-            name="email"
-            value={filters.email}
-            onChange={handleFilterChange}
-            placeholder="Email"
-          />
-          <Input
-            name="whatsapp"
-            value={filters.whatsapp}
-            onChange={handleFilterChange}
-            placeholder="WhatsApp"
-          />
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Nome, Email e WhatsApp */}
+              <Input
+                name="name"
+                value={filters.name}
+                onChange={handleFilterChange}
+                placeholder="Nome"
+              />
+              <Input
+                name="email"
+                value={filters.email}
+                onChange={handleFilterChange}
+                placeholder="Email"
+              />
+              <Input
+                name="whatsapp"
+                value={filters.whatsapp}
+                onChange={handleFilterChange}
+                placeholder="WhatsApp"
+              />
 
-          <select
-            name="gender"
-            value={filters.gender}
-            onChange={handleFilterChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">Gênero</option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="outro">Outro</option>
-          </select>
-
-          <Input
-            type="date"
-            name="birth_date_start"
-            value={filters.birth_date_start}
-            onChange={handleFilterChange}
-            placeholder="Nascimento Início"
-          />
-          <Input
-            type="date"
-            name="birth_date_end"
-            value={filters.birth_date_end}
-            onChange={handleFilterChange}
-            placeholder="Nascimento Fim"
-          />
-
-          <Input
-            name="bairro"
-            value={filters.bairro}
-            onChange={handleFilterChange}
-            placeholder="Bairro"
-          />
-          <Input
-            name="cidade"
-            value={filters.cidade}
-            onChange={handleFilterChange}
-            placeholder="Cidade"
-          />
-          <Input
-            name="estado"
-            value={filters.estado}
-            onChange={handleFilterChange}
-            placeholder="Estado"
-          />
-          <Input
-            name="tags"
-            value={filters.tags}
-            onChange={handleFilterChange}
-            placeholder="Tags"
-          />
-        </div>
-
-        {/* Botões de ação */}
-        <div className="flex gap-4 mb-6">
-          <Button onClick={handleSelectAll}>
-            {selectAll ? "Desmarcar Todos" : "Selecionar Todos"}
-          </Button>
-          <Button onClick={addContactsToAudience} disabled={selectedContacts.length === 0}>
-            Adicionar Selecionados
-          </Button>
-          <Button onClick={addAllContactsToAudience} disabled={!contacts || contacts.length === 0}>
-            Adicionar Todos
-          </Button>
-          <Button
-            onClick={removeAllContactsFromAudience}
-            disabled={!audiences || audiences?.length === 0}
-            variant="destructive"
-          >
-            Remover Todos
-          </Button>
-        </div>
-
-        {/* Lista de Contatos Disponíveis */}
-        <div className="flex items-center justify-center my-6">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="px-4 text-stone-700 text-sm flex items-center">
-            <UserCheck size={18} className="mr-2 text-stone-700" /> Contatos Disponíveis
-          </span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-
-        {!contacts || contacts?.length === 0 ? (
-          <p className="text-gray-500 text-center p-4 bg-white shadow rounded-lg">
-            Nenhum contato disponível para adicionar.
-          </p>
-        ) : (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-stone-200 p-4 rounded-lg">
-            {contacts?.map((contact) => (
-              <div
-                key={contact.id}
-                className="bg-white p-4 shadow rounded-lg flex justify-between items-center bg-stone-100"
+              {/* Filtro de Gênero */}
+              <Select
+                value={filters.gender}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, gender: value === "none" ? "" : value })
+                }
               >
-                <input
-                  type="checkbox"
-                  checked={contact.id ? selectedContacts.includes(contact.id) : false}
-                  onChange={() => contact.id && handleSelectContact(contact.id)}
-                  className="mr-2"
-                />
-                <span className="text-sm font-semibold">{contact.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecionar Gênero" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectItem className="bg-secondary flex justify-center" value="none">
+                    <span className="text-xs">Limpar</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
 
-        {/* Paginação dos Contatos Disponíveis (Ocultar se não houver registros) */}
-        {contacts?.length > 0 && (
-          <Paginator
-            totalRecords={availablesPage.total_records}
-            totalPages={availablesPage.total_pages}
-            currentPage={availablesPage.current_page}
-            perPage={availablesPage.per_page}
-            onPageChange={(newPage) =>
-              setAvailablePage((prev) => ({ ...prev, current_page: newPage }))
-            }
-          />
-        )}
+              {/* Data de nascimento */}
+              <Input
+                type="date"
+                name="birth_date_start"
+                value={filters.birth_date_start}
+                onChange={handleFilterChange}
+              />
+              <Input
+                type="date"
+                name="birth_date_end"
+                value={filters.birth_date_end}
+                onChange={handleFilterChange}
+              />
 
-        {/* Lista de Contatos na Audiência */}
-        <div className="flex items-center justify-center my-6">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="px-4 text-stone-700 text-sm flex items-center">
-            <UserCheck size={18} className="mr-2 text-stone-700" /> Contatos Adicionados
-          </span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
+              {/* Endereço */}
+              <Input
+                name="bairro"
+                value={filters.bairro}
+                onChange={handleFilterChange}
+                placeholder="Bairro"
+              />
+              <Input
+                name="cidade"
+                value={filters.cidade}
+                onChange={handleFilterChange}
+                placeholder="Cidade"
+              />
+              <Input
+                name="estado"
+                value={filters.estado}
+                onChange={handleFilterChange}
+                placeholder="Estado"
+              />
 
-        {!audiences || audiences?.length === 0 ? (
-          <p className="text-gray-500 text-center p-4 bg-white shadow rounded-lg">
-            Nenhum contato adicionado à campanha ainda.
-          </p>
-        ) : (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 bg-neutral-200 p-4 rounded-lg">
-            {audiences?.map((audience) => (
-              <div
-                key={audience.id}
-                className="bg-white p-4 shadow rounded-lg flex justify-between items-center bg-neutral-100"
+              {/* Tags */}
+              <Input
+                name="tags"
+                value={filters.tags}
+                onChange={(e) => {
+                  setFilters({ ...filters, tags: e.target.value });
+                }}
+                onBlur={() => {
+                  setFilters((prevFilters) => ({
+                    ...prevFilters,
+                    tags: prevFilters.tags
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter((tag) => tag.length > 0)
+                      .join(", "),
+                  }));
+                }}
+                placeholder="Tags (separadas por vírgula)"
+              />
+            </div>
+
+            {/* Botão Adicionar Todos dentro do painel de Filtros */}
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={addAllContactsToAudience}
+                disabled={!contacts || contacts.length === 0}
+                variant="default"
               >
-                <span className="text-sm font-semibold">{audience.name}</span>
-                <button
-                  onClick={() => audience.id && removeContactFromAudience(audience.id)}
-                  className="text-red-600 hover:text-red-800 transition duration-200 p-2 rounded-full"
-                  title="Remover"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+                <PlusCircle className="w-5 h-5 mr-2" />
+                Adicionar Todos os Filtrados
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Contatos Disponíveis */}
+        <Card className="mb-6 bg-contacts-available">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck size={20} className="text-primary" /> Contatos Disponíveis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contacts?.length > 0 ? (
+              <>
+                {/* Botões dentro do painel */}
+                <div className="flex justify-between mb-4">
+                  <Button onClick={handleSelectAll} variant="default">
+                    {selectAll ? (
+                      <>
+                        <CheckSquare className="w-5 h-5 mr-2" />
+                        Desmarcar Todos
+                      </>
+                    ) : (
+                      <>
+                        <Square className="w-5 h-5 mr-2" />
+                        Selecionar Todos
+                      </>
+                    )}
+                  </Button>
 
-        {/* Paginação da Audiência (Ocultar se não houver registros) */}
-        {audiences?.length > 0 && (
-          <Paginator
-            totalRecords={audiencePage.total_records}
-            totalPages={audiencePage.total_pages}
-            currentPage={audiencePage.current_page}
-            perPage={audiencePage.per_page}
-            onPageChange={(newPage) =>
-              setAudiencePage((prev) => ({ ...prev, current_page: newPage }))
-            }
-          />
-        )}
+                  <Button
+                    onClick={addContactsToAudience}
+                    disabled={selectedContacts.length === 0}
+                    variant="default"
+                  >
+                    <UserPlus className="w-5 h-5 mr-2" />
+                    Adicionar Selecionados
+                  </Button>
+                </div>
 
-        {/* Separador */}
-        <hr className="my-6" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {contacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      className="flex items-center bg-muted p-4 rounded-lg shadow-md"
+                    >
+                      <Checkbox
+                        checked={contact.id ? selectedContacts.includes(contact.id) : false}
+                        onCheckedChange={() => contact.id && handleSelectContact(contact.id)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium">{contact.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-gray-500 text-center py-4">
+                Nenhum contato disponível para adicionar.
+              </p>
+            )}
+          </CardContent>
+
+          {/* Paginação dos Contatos Disponíveis */}
+          {contacts?.length > 0 && (
+            <div className="p-4">
+              <Paginator
+                totalRecords={availablesPage.total_records}
+                totalPages={availablesPage.total_pages}
+                currentPage={availablesPage.current_page}
+                perPage={availablesPage.per_page}
+                onPageChange={(newPage) =>
+                  setAvailablePage((prev) => ({ ...prev, current_page: newPage }))
+                }
+              />
+            </div>
+          )}
+        </Card>
+
+        {/* Contatos Adicionados */}
+        <Card className="mb-6 bg-contacts-added">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck size={20} className="text-primary" /> Contatos Adicionados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {audiences?.length > 0 ? (
+              <>
+                {/* Botão Remover Todos dentro do painel */}
+                <div className="flex justify-end mb-4">
+                  <Button onClick={removeAllContactsFromAudience} variant="destructive">
+                    <Trash2 className="w-5 h-5 mr-2" />
+                    Remover Todos
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {audiences.map((audience) => (
+                    <div
+                      key={audience.id}
+                      className="flex justify-between items-center bg-muted p-4 rounded-lg shadow-md"
+                    >
+                      <span className="text-sm font-medium">{audience.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => audience.id && removeContactFromAudience(audience.id)}
+                        className="text-red-600 hover:text-red-800 transition"
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-gray-500 text-center py-4">
+                Nenhum contato adicionado à campanha ainda.
+              </p>
+            )}
+          </CardContent>
+
+          {/* Paginação dos Contatos Adicionados */}
+          {audiences?.length > 0 && (
+            <div className="p-4">
+              <Paginator
+                totalRecords={audiencePage.total_records}
+                totalPages={audiencePage.total_pages}
+                currentPage={audiencePage.current_page}
+                perPage={audiencePage.per_page}
+                onPageChange={(newPage) =>
+                  setAudiencePage((prev) => ({ ...prev, current_page: newPage }))
+                }
+              />
+            </div>
+          )}
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }

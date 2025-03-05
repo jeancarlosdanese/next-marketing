@@ -1,18 +1,28 @@
 // File: pages/campaigns/edit.tsx
 
-import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Layout from "@/components/Layout";
+import LayoutForm from "@/components/LayoutForm";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Campaign } from "@/types/campaign";
+import { Template } from "@/types/template";
 import { CampaignService } from "@/services/campaign";
 import { TemplateService } from "@/services/template";
-import { Template } from "@/types/template";
-import { Campaign } from "@/types/campaign";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUser } from "@/context/UserContext";
 import Spinner from "@/components/Spinner";
+import { toast } from "sonner";
 
-export default function EditCampaignPage() {
+const EditCampaignPage = () => {
   const { user, loading } = useUser();
   const [campaign, setCampaign] = useState<
     Omit<Campaign, "id" | "account_id" | "created_at" | "updated_at">
@@ -30,12 +40,11 @@ export default function EditCampaignPage() {
 
   const [emailTemplates, setEmailTemplates] = useState<Template[]>([]);
   const [whatsappTemplates, setWhatsappTemplates] = useState<Template[]>([]);
-
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { id } = router.query;
   const isEditing = Boolean(id);
 
-  // 🔹 Redirecionamento seguro dentro do useEffect
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
@@ -43,17 +52,10 @@ export default function EditCampaignPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (!loading && !user) return;
 
     async function fetchData() {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.push("/auth/login");
-          return;
-        }
-
-        // 🔹 Carregar templates
         setEmailTemplates(await TemplateService.getByChannel("email"));
         setWhatsappTemplates(await TemplateService.getByChannel("whatsapp"));
 
@@ -71,6 +73,7 @@ export default function EditCampaignPage() {
         }
       } catch (error) {
         console.error("Erro ao carregar dados", error);
+        toast.error("Erro ao carregar os dados.");
         router.push("/campaigns");
       }
     }
@@ -78,209 +81,188 @@ export default function EditCampaignPage() {
     fetchData();
   }, [loading, user, id, isEditing, router]);
 
-  const saveCampaign = async () => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (!campaign) return;
+    setCampaign({ ...campaign, [e.target.name]: e.target.value });
+  };
+
+  const handleTagsChange = (value: string, resetInput: () => void) => {
+    if (!value.trim()) return;
+    setCampaign((prev) => ({
+      ...prev!,
+      filters: { ...prev!.filters, tags: [...(prev!.filters.tags || []), value.trim()] },
+    }));
+
+    resetInput();
+  };
+
+  const handleTagRemove = (tag: string) => {
+    setCampaign((prev) => ({
+      ...prev!,
+      filters: { ...prev!.filters, tags: prev!.filters.tags.filter((t) => t !== tag) },
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!campaign.name.trim()) {
+      setError("O nome da campanha é obrigatório.");
+      return;
+    }
+
+    if (Object.keys(campaign.channels).length === 0) {
+      setError("Pelo menos um canal de comunicação é obrigatório.");
+      return;
+    }
+
+    // 🔹 Remover canais sem template válido antes do envio
     const cleanCampaign = {
       ...campaign,
       channels: Object.fromEntries(
-        Object.entries(campaign.channels)
-          .filter(([_, value]) => value.template) // ✅ Remove canais sem template
-          .map(([key, value]) => [
-            key,
-            { template: value.template as string, priority: value.priority }, // ✅ Garante que template é string
-          ])
+        Object.entries(campaign.channels).filter(([_, value]) => value.template.trim())
       ),
     };
 
     try {
       if (isEditing) {
         await CampaignService.update(id as string, cleanCampaign);
+        toast.success("Campanha atualizada com sucesso!");
       } else {
         await CampaignService.create(cleanCampaign);
+        toast.success("Campanha criada com sucesso!");
       }
       router.push("/campaigns");
     } catch (error) {
       console.error("Erro ao salvar campanha", error);
+      setError("Erro ao salvar campanha. Tente novamente.");
     }
   };
 
-  if (loading) return <Spinner />; // 🔹 Agora o spinner está fora do retorno condicional do React
-  if (!user) return null; // 🔹 Evita exibição de conteúdo antes do redirecionamento
-  if (!campaign) return null; // 🔹 Evita exibição de conteúdo antes do carregamento
+  if (loading || !user || !campaign) return <Spinner />;
+  if (!user || !campaign) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-md p-6">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">
-            {isEditing ? "Editar Campanha" : "Nova Campanha"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            value={campaign.name}
-            onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
-            placeholder="Nome da Campanha"
-          />
-          <Input
-            value={campaign.description || ""}
-            onChange={(e) => setCampaign({ ...campaign, description: e.target.value })}
-            placeholder="Descrição"
-            className="mt-2"
-          />
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl font-bold mb-6 sm:mb-4">
+        {isEditing ? "Editando Campanha" : "Nova Campanha"}
+      </h1>
 
-          {/* Seletor de Templates */}
-          <label className="block mt-4">Template Email:</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={campaign.channels.email.template}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                channels: {
-                  ...prev.channels,
-                  email: { ...prev.channels.email, template: e.target.value },
-                },
-              }))
-            }
-          >
-            <option value="">Selecione um template</option>
+      <LayoutForm onSave={handleSubmit}>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+          <div>
+            <label className="block mt-3 sm:mt-4">Nome:</label>
+            <Input
+              name="name"
+              value={campaign.name}
+              onChange={handleChange}
+              placeholder="Nome da Campanha *"
+            />
+          </div>
+          <div>
+            <label className="block mt-3 sm:mt-4">Descrição:</label>
+            <Textarea
+              name="description"
+              value={campaign.description || ""}
+              onChange={(e) => setCampaign({ ...campaign, description: e.target.value })}
+              placeholder="Descrição"
+              className="min-h-[80px]"
+            />
+          </div>
+        </div>
+
+        <label className="block mt-3 sm:mt-4">Template Email:</label>
+        <Select
+          value={campaign.channels.email.template}
+          onValueChange={(value) =>
+            setCampaign((prev) => ({
+              ...prev!,
+              channels: { ...prev!.channels, email: { ...prev!.channels.email, template: value } },
+            }))
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecionar Template de Email" />
+          </SelectTrigger>
+          <SelectContent>
             {emailTemplates.length > 0 ? (
               emailTemplates.map((t) => (
-                <option key={t.id} value={t.id}>
+                <SelectItem key={t.id} value={t.id}>
                   {t.name}
-                </option>
+                </SelectItem>
               ))
             ) : (
-              <option disabled>Nenhum template disponível</option>
+              <SelectItem value="none" disabled>
+                Nenhum template disponível
+              </SelectItem>
             )}
-          </select>
+          </SelectContent>
+        </Select>
 
-          <label className="block mt-4">Template WhatsApp:</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={campaign.channels?.whatsapp?.template}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                channels: {
-                  ...prev.channels,
-                  whatsapp: { ...prev.channels?.whatsapp, template: e.target.value },
-                },
-              }))
-            }
-          >
-            <option value="">Selecione um template</option>
+        <label className="block mt-3 sm:mt-4">Template WhatsApp:</label>
+        <Select
+          value={campaign.channels.whatsapp?.template}
+          onValueChange={(value) =>
+            setCampaign((prev) => ({
+              ...prev!,
+              channels: {
+                ...prev!.channels,
+                whatsapp: { ...prev!.channels.whatsapp, template: value },
+              },
+            }))
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecionar Template de WhatsApp" />
+          </SelectTrigger>
+          <SelectContent>
             {whatsappTemplates?.length > 0 ? (
               whatsappTemplates.map((t) => (
-                <option key={t.id} value={t.id}>
+                <SelectItem key={t.id} value={t.id}>
                   {t.name}
-                </option>
+                </SelectItem>
               ))
             ) : (
-              <option disabled>Nenhum template disponível</option>
+              <SelectItem value="none" disabled>
+                Nenhum template disponível
+              </SelectItem>
             )}
-          </select>
+          </SelectContent>
+        </Select>
 
-          {/* Status (Apenas Exibição) */}
-          <label className="block mt-4">Status:</label>
-          <Input value={campaign.status} disabled className="w-full p-2 border bg-gray-200" />
-          {/* Campo de Status */}
-          {/* <label className="block mt-4">Status da Campanha:</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={campaign.status}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                status: e.target.value as "pendente" | "ativa" | "concluida",
-              }))
+        {/* Tags */}
+        <label className="block mt-3 sm:mt-4">Tags:</label>
+        <Input
+          placeholder="Adicione uma tag"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              const input = e.currentTarget;
+              handleTagsChange(input.value, () => (input.value = ""));
             }
-          >
-            <option value="pendente">Pendente</option>
-            <option value="ativa">Ativa</option>
-            <option value="concluida">Concluída</option>
-          </select> */}
-
-          {/* Filtros: Tags */}
-          <label className="block mt-4">Tags:</label>
-          <Input
-            value={campaign.filters.tags?.join(", ")}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                filters: {
-                  ...prev.filters,
-                  tags: e.target.value.split(",").map((tag) => tag.trim()),
-                },
-              }))
-            }
-            placeholder="Ex: vip, cliente_fiel"
-          />
-
-          {/* Filtros: Gênero */}
-          <label className="block mt-4">Gênero:</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={campaign.filters.gender || ""}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                filters: { ...prev.filters, gender: e.target.value || undefined },
-              }))
-            }
-          >
-            <option value="">Todos</option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-          </select>
-
-          {/* Filtros: Data de Nascimento */}
-          <label className="block mt-4">Data de Nascimento (Início):</label>
-          <Input
-            type="date"
-            value={campaign.filters.birth_date_range?.start}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                filters: {
-                  ...prev.filters,
-                  birth_date_range: {
-                    ...prev.filters.birth_date_range,
-                    start: e.target.value,
-                    end: prev.filters.birth_date_range?.end || "", // Ensure end is always a string
-                  },
-                },
-              }))
-            }
-          />
-
-          <label className="block mt-4">Data de Nascimento (Fim):</label>
-          <Input
-            type="date"
-            value={campaign.filters.birth_date_range?.end || ""}
-            onChange={(e) =>
-              setCampaign((prev) => ({
-                ...prev,
-                filters: {
-                  ...prev.filters,
-                  birth_date_range: {
-                    ...prev.filters.birth_date_range,
-                    end: e.target.value,
-                    start: prev.filters.birth_date_range?.start || "", // Ensure start is always a string
-                  },
-                },
-              }))
-            }
-          />
-
-          <Button onClick={saveCampaign} className="w-full mt-4">
-            {isEditing ? "Salvar Alterações" : "Criar Campanha"}
-          </Button>
-          <Button variant="outline" className="w-full" onClick={() => router.push("/campaigns")}>
-            Voltar
-          </Button>
-        </CardContent>
-      </Card>
+          }}
+        />
+        <div className="flex flex-wrap gap-2 mt-2">
+          {campaign.filters?.tags?.map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="flex items-center space-x-2 px-2 py-1 text-xs font-semibold shadow-md transition bg-teal-700 border-teal-800 text-white hover:bg-teal-800 hover:border-teal-900"
+            >
+              {tag}
+              <button
+                className="ml-1 text-white hover:text-gray-100 focus:outline-none"
+                onClick={() => handleTagRemove(tag)}
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
+        </div>
+      </LayoutForm>
     </div>
   );
-}
+};
+
+EditCampaignPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;
+
+export default EditCampaignPage;
