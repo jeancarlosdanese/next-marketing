@@ -1,15 +1,8 @@
-// File: pages/_app.tsx
+// File: hooks/useTheme.ts
 
-import "@/styles/globals.css";
-import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
-import { UserProvider } from "@/context/UserContext";
-import { Toaster } from "@/components/ui/sonner";
 
-export default function App({ Component, pageProps }: AppProps) {
-  const getLayout = (Component as any).getLayout || ((page: JSX.Element) => page);
-
-  // 🌙 Gerencia o Tema
+export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -23,10 +16,12 @@ export default function App({ Component, pageProps }: AppProps) {
     }
   }, []);
 
-  return (
-    <UserProvider>
-      {getLayout(<Component {...pageProps} />)}
-      <Toaster />
-    </UserProvider>
-  );
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+    localStorage.setItem("theme", newTheme);
+  };
+
+  return { theme, toggleTheme };
 }

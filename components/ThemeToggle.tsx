@@ -5,32 +5,30 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Verifica se o usuário já tem um tema salvo
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark";
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (typeof window !== "undefined") {
+      // Verifica o tema salvo ou a preferência do sistema
+      const storedTheme = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
 
-    // Define o tema com base no localStorage ou preferência do sistema
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle("dark", initialTheme === "dark");
+      setIsDark(initialTheme === "dark");
+      document.documentElement.classList.toggle("dark", initialTheme === "dark");
+    }
   }, []);
 
   const toggleTheme = () => {
-    if (!theme) return; // Evita erro enquanto o tema ainda não foi carregado
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    const newTheme = isDark ? "light" : "dark";
+    setIsDark(!isDark);
     document.documentElement.classList.toggle("dark", newTheme === "dark");
+    localStorage.setItem("theme", newTheme);
   };
 
-  if (theme === null) return null; // 🔹 Evita exibir o botão até que o tema seja carregado
-
   return (
-    <Button variant="outline" size="icon" onClick={toggleTheme}>
-      {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+    <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Alternar tema">
+      {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
     </Button>
   );
 }
