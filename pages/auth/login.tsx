@@ -12,25 +12,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
+import { Mail, Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
   identifier: z.string().min(5, "Informe seu e-mail ou WhatsApp"),
 });
-
-const otpSchema = z
-  .string()
-  .length(8, "O OTP deve ter exatamente 8 dígitos.")
-  .regex(/^\d+$/, "O OTP deve conter apenas números.");
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [identifier, setIdentifier] = useState("");
-  const [otp, setOtp] = useState(""); // 🔹 Estado para armazenar o OTP digitado
+  const [otp, setOtp] = useState("");
   const { refreshUser } = useUser();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  const otpSchema = z
+    .string()
+    .length(8, "O OTP deve ter exatamente 8 dígitos.")
+    .regex(/^\d+$/, "O OTP deve conter apenas números.");
 
   const {
     register,
@@ -54,7 +55,6 @@ export default function LoginPage() {
     }
   };
 
-  // 🔹 Função para verificar o OTP
   const verifyOTP = async (otpValue?: string) => {
     const otpToValidate = otpValue || otp;
 
@@ -85,29 +85,36 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <Card className="w-full max-w-md p-6 shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl">Login</CardTitle>
         </CardHeader>
         <CardContent>
           {!otpSent ? (
             <form onSubmit={handleSubmit(sendOTP)} className="space-y-4">
-              <Input {...register("identifier")} placeholder="E-mail ou WhatsApp" />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  {...register("identifier")}
+                  placeholder="E-mail ou WhatsApp"
+                  className="pl-10"
+                  disabled={isLoading}
+                />
+              </div>
               {errors.identifier && (
-                <p className="text-red-500 text-sm">{errors.identifier.message}</p>
+                <p className="text-destructive text-sm">{errors.identifier.message}</p>
               )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Enviando..." : "Enviar OTP"}
+                {isLoading ? <Loader2 className="animate-spin mr-2" /> : "Enviar OTP"}
               </Button>
             </form>
           ) : (
             <div className="space-y-4">
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-muted-foreground">
                 Digite o código enviado para <strong>{identifier}</strong>
               </p>
 
-              {/* InputOTP com verificação automática */}
               <InputOTP
                 maxLength={8}
                 value={otp}
@@ -130,12 +137,13 @@ export default function LoginPage() {
                   ))}
                 </InputOTPGroup>
               </InputOTP>
+
               <Button
                 onClick={() => verifyOTP()}
                 className="w-full"
                 disabled={isLoading || otp.length < 8}
               >
-                {isLoading ? "Verificando..." : "Confirmar Código"}
+                {isLoading ? <Loader2 className="animate-spin mr-2" /> : "Confirmar Código"}
               </Button>
             </div>
           )}
