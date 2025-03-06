@@ -5,6 +5,7 @@ import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import { UserProvider } from "@/context/UserContext";
 import { Toaster } from "@/components/ui/sonner";
+import Footer from "@/components/Footer";
 
 export default function App({ Component, pageProps }: AppProps) {
   const getLayout = (Component as any).getLayout || ((page: JSX.Element) => page);
@@ -20,6 +21,21 @@ export default function App({ Component, pageProps }: AppProps) {
 
       setTheme(initialTheme);
       document.documentElement.classList.toggle("dark", initialTheme === "dark");
+
+      // 🔹 Carregar script do reCAPTCHA v3
+      const script = document.createElement("script");
+      script.src = `https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`;
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        console.log("✅ reCAPTCHA carregado com sucesso!");
+      };
+
+      return () => {
+        document.body.removeChild(script);
+      };
     }
   }, []);
 
@@ -27,6 +43,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <UserProvider>
       {getLayout(<Component {...pageProps} />)}
       <Toaster />
+      <Footer />
     </UserProvider>
   );
 }

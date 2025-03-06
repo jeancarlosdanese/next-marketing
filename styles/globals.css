@@ -101,3 +101,8 @@ body {
   background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
     rgb(var(--background-start-rgb));
 }
+
+/* Oculta o selo do reCAPTCHA v3 */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}

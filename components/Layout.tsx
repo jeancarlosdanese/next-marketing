@@ -16,7 +16,6 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex flex-col flex-1">
           <Header />
           <main className="flex-grow p-6">{children}</main>
-          <Footer />
         </div>
       </div>
     </div>

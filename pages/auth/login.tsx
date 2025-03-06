@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
 import { Mail, Loader2 } from "lucide-react";
+import { useRecaptcha } from "@/hooks/useRecaptcha"; // Hook de reCAPTCHA
 
 const loginSchema = z.object({
   identifier: z.string().min(5, "Informe seu e-mail ou WhatsApp"),
@@ -28,6 +29,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+  const recaptchaToken = useRecaptcha("login"); // Captura o token do reCAPTCHA
+
   const otpSchema = z
     .string()
     .length(8, "O OTP deve ter exatamente 8 dígitos.")
@@ -40,9 +43,18 @@ export default function LoginPage() {
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
   const sendOTP = async (data: LoginForm) => {
+    if (!recaptchaToken) {
+      toast.error("❌ Erro ao validar reCAPTCHA. O token está indefinido.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/request-otp`, data);
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/request-otp`, {
+        ...data,
+        recaptchaToken, // Enviando o token do reCAPTCHA para o backend
+      });
+
       setIdentifier(data.identifier);
       setOtpSent(true);
       toast.success("Código OTP enviado!");

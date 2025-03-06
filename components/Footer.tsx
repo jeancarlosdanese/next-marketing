@@ -16,6 +16,29 @@ export default function Footer() {
         </Link>
       </p>
       <p className="opacity-75">© {new Date().getFullYear()} Todos os direitos reservados.</p>
+
+      {/* 🔹 Mensagem do reCAPTCHA */}
+      <p className="opacity-50 text-xs mt-2">
+        Este site é protegido pelo reCAPTCHA e está sujeito à{" "}
+        <a
+          href="https://policies.google.com/privacy"
+          className="underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Política de Privacidade
+        </a>{" "}
+        e{" "}
+        <a
+          href="https://policies.google.com/terms"
+          className="underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Termos de Serviço
+        </a>{" "}
+        do Google.
+      </p>
     </footer>
   );
 }
