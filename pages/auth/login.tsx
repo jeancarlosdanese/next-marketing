@@ -17,6 +17,11 @@ const loginSchema = z.object({
   identifier: z.string().min(5, "Informe seu e-mail ou WhatsApp"),
 });
 
+const otpSchema = z
+  .string()
+  .length(8, "O OTP deve ter exatamente 8 dígitos.")
+  .regex(/^\d+$/, "O OTP deve conter apenas números.");
+
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
@@ -40,17 +45,23 @@ export default function LoginPage() {
       setIdentifier(data.identifier);
       setOtpSent(true);
       toast.success("Código OTP enviado!");
-    } catch (error) {
-      console.error("Erro ao solicitar OTP", error);
-      toast.error("Erro ao solicitar OTP. Verifique seus dados.");
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || "Erro ao solicitar OTP. Verifique seus dados.";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const verifyOTP = async () => {
-    if (otp.length < 8) {
-      toast.error("Código OTP incompleto.");
+  // 🔹 Função para verificar o OTP
+  const verifyOTP = async (otpValue?: string) => {
+    const otpToValidate = otpValue || otp;
+
+    const validation = otpSchema.safeParse(otpToValidate);
+
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
       return;
     }
 
@@ -58,16 +69,16 @@ export default function LoginPage() {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`, {
         identifier,
-        otp,
+        otp: otpToValidate,
       });
 
       localStorage.setItem("token", response.data.token);
       await refreshUser();
       toast.success("Login realizado com sucesso!");
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Erro ao verificar OTP", error);
-      toast.error("Código inválido. Tente novamente.");
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Código inválido. Tente novamente.";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -96,12 +107,18 @@ export default function LoginPage() {
                 Digite o código enviado para <strong>{identifier}</strong>
               </p>
 
-              {/* 🔹 Novo InputOTP do shadcn */}
+              {/* InputOTP com verificação automática */}
               <InputOTP
                 maxLength={8}
                 value={otp}
-                onChange={setOtp}
-                className="flex justify-center w-full"
+                onChange={(value) => {
+                  if (/^\d*$/.test(value)) {
+                    setOtp(value);
+                    if (value.length === 8) {
+                      verifyOTP(value);
+                    }
+                  }
+                }}
               >
                 <InputOTPGroup className="flex gap-1 sm:gap-2 justify-center w-full max-w-md">
                   {[...Array(8)].map((_, index) => (
@@ -113,8 +130,11 @@ export default function LoginPage() {
                   ))}
                 </InputOTPGroup>
               </InputOTP>
-
-              <Button onClick={verifyOTP} className="w-full" disabled={isLoading || otp.length < 8}>
+              <Button
+                onClick={() => verifyOTP()}
+                className="w-full"
+                disabled={isLoading || otp.length < 8}
+              >
                 {isLoading ? "Verificando..." : "Confirmar Código"}
               </Button>
             </div>

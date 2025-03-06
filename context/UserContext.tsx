@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { UserService } from "@/services/user";
 import { useRouter } from "next/router";
+import { toast } from "sonner";
 
 // Tipo correto baseado no retorno do backend
 type Account = {
@@ -34,10 +35,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUser = async () => {
     if (typeof window === "undefined") return;
 
+    setLoading(true);
+
     const token = localStorage.getItem("token");
     if (!token) {
       setUser(null);
-      setLoading(false);
       router.push("/auth/login");
       return;
     }
@@ -46,10 +48,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const userData: Account = await UserService.getAuthenticatedUser();
       setUser(userData);
     } catch (error: any) {
+      console.error("Erro ao buscar usuário autenticado:", error);
+
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         router.push("/auth/login");
+      } else {
+        toast.error("Erro ao carregar dados do usuário. Tente novamente mais tarde.");
       }
+
       setUser(null);
     } finally {
       setLoading(false);
@@ -64,6 +71,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
