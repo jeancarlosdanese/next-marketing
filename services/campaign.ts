@@ -9,8 +9,13 @@ const getAuthHeaders = () => ({
 });
 
 export const CampaignService = {
-  async getAll(): Promise<Campaign[]> {
-    const response = await axios.get(`${API_URL}/campaigns`, getAuthHeaders());
+  async getAll(filters: Record<string, string | undefined> = {}) {
+    // 🔹 Remove valores undefined e vazios antes de construir a query
+    const validFilters = Object.fromEntries(Object.entries(filters).filter(([_, value]) => value));
+
+    const params = new URLSearchParams(validFilters as Record<string, string>);
+    const response = await axios.get(`${API_URL}/campaigns?${params.toString()}`, getAuthHeaders());
+
     return response.data;
   },
 
@@ -102,6 +107,12 @@ export const CampaignService = {
       console.error("Erro ao adicionar todos os contatos à audiência", error);
       throw error;
     }
+  },
+
+  async updateStatus(campaignId: string, status: { status: string }) {
+    console.log("Atualizando status da campanha", status);
+
+    await axios.patch(`${API_URL}/campaigns/${campaignId}/status`, status, getAuthHeaders());
   },
 
   // 🔹 3️⃣ Remover um contato da audiência

@@ -12,6 +12,11 @@ export type Campaign = {
       start: string;
       end: string;
     };
+    locale?: {
+      neighborhood: string;
+      city: string;
+      state: string;
+    };
   };
   status: "pendente" | "ativa" | "concluida";
   created_at: string;

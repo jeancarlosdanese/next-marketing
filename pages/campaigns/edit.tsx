@@ -21,6 +21,7 @@ import { TemplateService } from "@/services/template";
 import { useUser } from "@/context/UserContext";
 import Spinner from "@/components/Spinner";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const EditCampaignPage = () => {
   const { user, loading } = useUser();
@@ -34,6 +35,7 @@ const EditCampaignPage = () => {
       tags: [],
       gender: "",
       birth_date_range: { start: "", end: "" },
+      locale: { neighborhood: "", city: "", state: "" },
     },
     status: "pendente",
   });
@@ -81,26 +83,9 @@ const EditCampaignPage = () => {
     fetchData();
   }, [loading, user, id, isEditing, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!campaign) return;
     setCampaign({ ...campaign, [e.target.name]: e.target.value });
-  };
-
-  const handleTagsChange = (value: string, resetInput: () => void) => {
-    if (!value.trim()) return;
-    setCampaign((prev) => ({
-      ...prev!,
-      filters: { ...prev!.filters, tags: [...(prev!.filters.tags || []), value.trim()] },
-    }));
-
-    resetInput();
-  };
-
-  const handleTagRemove = (tag: string) => {
-    setCampaign((prev) => ({
-      ...prev!,
-      filters: { ...prev!.filters, tags: prev!.filters.tags.filter((t) => t !== tag) },
-    }));
   };
 
   const handleSubmit = async () => {
@@ -149,26 +134,25 @@ const EditCampaignPage = () => {
       <LayoutForm onSave={handleSubmit}>
         {error && <p className="text-red-500 text-center">{error}</p>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-          <div>
-            <label className="block mt-3 sm:mt-4">Nome:</label>
-            <Input
-              name="name"
-              value={campaign.name}
-              onChange={handleChange}
-              placeholder="Nome da Campanha *"
-            />
-          </div>
-          <div>
-            <label className="block mt-3 sm:mt-4">Descrição:</label>
-            <Textarea
-              name="description"
-              value={campaign.description || ""}
-              onChange={(e) => setCampaign({ ...campaign, description: e.target.value })}
-              placeholder="Descrição"
-              className="min-h-[80px]"
-            />
-          </div>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
+        {/* Nome e Descrição */}
+        <div className="grid gap-2 sm:gap-4">
+          <label>Nome:</label>
+          <Input
+            name="name"
+            value={campaign.name}
+            onChange={handleChange}
+            placeholder="Nome da Campanha *"
+          />
+
+          <label>Descrição:</label>
+          <Textarea
+            name="description"
+            value={campaign.description || ""}
+            onChange={handleChange}
+            placeholder="Descrição"
+          />
         </div>
 
         <label className="block mt-3 sm:mt-4">Template Email:</label>
@@ -229,34 +213,8 @@ const EditCampaignPage = () => {
             )}
           </SelectContent>
         </Select>
-
-        {/* Tags */}
-        <label className="block mt-3 sm:mt-4">Tags:</label>
-        <Input
-          placeholder="Adicione uma tag"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              const input = e.currentTarget;
-              handleTagsChange(input.value, () => (input.value = ""));
-            }
-          }}
-        />
-        <div className="flex flex-wrap gap-2 mt-2">
-          {campaign.filters?.tags?.map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className="flex items-center space-x-2 px-2 py-1 text-xs font-semibold shadow-md transition bg-teal-700 border-teal-800 text-white hover:bg-teal-800 hover:border-teal-900"
-            >
-              {tag}
-              <button
-                className="ml-1 text-white hover:text-gray-100 focus:outline-none"
-                onClick={() => handleTagRemove(tag)}
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
+        <div className="mt-4">
+          <Button onClick={() => router.push(`/campaigns/${id}/settings`)}>Avançar</Button>
         </div>
       </LayoutForm>
     </div>

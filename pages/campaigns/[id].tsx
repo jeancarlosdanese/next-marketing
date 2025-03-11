@@ -3,29 +3,31 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Campaign } from "@/types/campaign";
 import { CampaignService } from "@/services/campaign";
 import { useUser } from "@/context/UserContext";
 import Spinner from "@/components/Spinner";
 import { toast } from "sonner";
-import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Audience } from "@/types/audience";
+import { Paginator as PaginatorType } from "@/types/paginator";
+import Paginator from "@/components/Paginator";
+import { Mail, MessageSquare, CheckCircle, Clock, XCircle, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const statusIcons = {
-  ativa: { icon: <CheckCircle className="w-4 h-4 text-green-600" />, label: "Ativa" },
-  pendente: { icon: <Clock className="w-4 h-4 text-yellow-600" />, label: "Pendente" },
-  encerrada: { icon: <XCircle className="w-4 h-4 text-red-600" />, label: "Encerrada" },
-};
-
-const CampaignDetailPage = () => {
+const CampaignDetailsPage = () => {
   const { user, loading } = useUser();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const router = useRouter();
   const { id } = router.query;
+  const [audiences, setAudiences] = useState<Audience[]>([]);
+  const [audiencePage, setAudiencePage] = useState<Omit<PaginatorType<Audience>, "data">>({
+    total_records: 0,
+    total_pages: 1,
+    current_page: 1,
+    per_page: 10, // Definindo um limite para melhor UX
+  });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -36,115 +38,174 @@ const CampaignDetailPage = () => {
   useEffect(() => {
     if (!loading && !user) return;
     if (!id) return;
+    fetchData();
+  }, [loading, user, id, router]);
 
-    async function fetchCampaign() {
-      try {
-        const data = await CampaignService.getById(id as string);
-        setCampaign(data);
-      } catch (error) {
-        console.error("Erro ao carregar campanha", error);
-        setError("Erro ao carregar campanha.");
-      }
-    }
+  useEffect(() => {
+    if (!id) return;
+    fetchAudience();
+  }, [id, audiencePage.current_page]);
 
-    fetchCampaign();
-  }, [loading, user, id]);
-
-  const deleteCampaign = async () => {
-    setIsDeleting(true);
+  async function fetchData() {
     try {
-      await CampaignService.delete(id as string);
-      toast.success("Campanha excluída com sucesso!");
-      router.push("/campaigns");
+      const data = await CampaignService.getById(id as string);
+      setCampaign(data);
     } catch (error) {
-      console.error("Erro ao excluir campanha", error);
-      toast.error("Erro ao excluir campanha. Tente novamente.");
-    } finally {
-      setIsDeleting(false);
+      console.error("Erro ao carregar campanha", error);
+      toast.error("Erro ao carregar a campanha.");
+      router.push("/campaigns");
     }
-  };
+  }
+
+  async function fetchAudience() {
+    try {
+      const response = await CampaignService.getAudienceContacts(
+        id as string,
+        audiencePage.current_page,
+        audiencePage.per_page
+      );
+      setAudiences(response.data);
+      setAudiencePage({
+        total_records: response.total_records,
+        total_pages: response.total_pages,
+        current_page: response.current_page,
+        per_page: response.per_page,
+      });
+    } catch (error) {
+      toast.error("Erro ao carregar contatos da audiência.");
+    }
+  }
+
+  async function activateCampaign() {
+    if (!campaign) return;
+    setIsActivating(true);
+    try {
+      await CampaignService.updateStatus(id as string, { status: "ativa" });
+      toast.success("Campanha ativada com sucesso!");
+      fetchData(); // Atualiza o status da campanha na UI
+    } catch (error) {
+      console.error("Erro ao ativar campanha", error);
+      toast.error("Erro ao ativar a campanha.");
+    }
+    setIsActivating(false);
+  }
 
   if (loading || !user || !campaign) return <Spinner />;
   if (!campaign) return null;
 
-  const status = statusIcons[campaign.status as keyof typeof statusIcons] || {
-    icon: <Clock className="w-4 h-4 text-gray-600" />,
-    label: "Desconhecido",
-  };
-
   return (
-    <div className="p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Detalhes da Campanha</h1>
-        <Button variant="default" onClick={() => router.push(`/campaigns/edit?id=${campaign.id}`)}>
-          Editar Campanha
-        </Button>
+    <Layout>
+      <div className="p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Detalhes da Campanha</h1>
+
+          {/* Botão de Ativação */}
+          {campaign.status !== "ativa" && (
+            <Button
+              onClick={activateCampaign}
+              disabled={isActivating}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+            >
+              <Play className="w-5 h-5" />
+              {isActivating ? "Ativando..." : "Ativar Campanha"}
+            </Button>
+          )}
+        </div>
+
+        {/* Informações da Campanha */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Informações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              <strong>Nome:</strong> {campaign.name}
+            </p>
+            <p>
+              <strong>Descrição:</strong> {campaign.description || "Nenhuma descrição"}
+            </p>
+            <p>
+              <strong>Status:</strong> {campaign.status}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Audiência */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Audiência</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              <strong>Total de contatos:</strong> {audiencePage.total_records}
+            </p>
+
+            {/* Tabela de Contatos */}
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full border rounded-lg overflow-hidden shadow-md">
+                <thead className="bg-gray-100">
+                  <tr className="text-left text-gray-700 uppercase text-sm font-medium">
+                    <th className="px-4 py-3">Nome</th>
+                    <th className="px-4 py-3">Canal</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">WhatsApp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {audiences.length > 0 ? (
+                    audiences.map((contact) => (
+                      <tr key={contact.id} className="border-b text-gray-900">
+                        <td className="px-4 py-3">{contact.name}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {contact.type === "email" ? (
+                              <>
+                                <Mail className="w-5 h-5 text-blue-500" /> Email
+                              </>
+                            ) : (
+                              <>
+                                <MessageSquare className="w-5 h-5 text-green-500" /> WhatsApp
+                              </>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {contact.status === "enviado" ? (
+                              <>
+                                <CheckCircle className="w-5 h-5 text-green-600" /> Enviado
+                              </>
+                            ) : contact.status === "pendente" ? (
+                              <>
+                                <Clock className="w-5 h-5 text-yellow-500" /> Pendente
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-5 h-5 text-red-500" /> Erro
+                              </>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">{contact.email || "—"}</td>
+                        <td className="px-4 py-3">{contact.whatsapp || "—"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="text-center py-4 text-gray-500">
+                        Nenhum contato adicionado à campanha.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {error && <p className="text-red-500 text-center">{error}</p>}
-
-      <Card>
-        <CardHeader className="flex justify-between items-center">
-          <CardTitle>{campaign.name}</CardTitle>
-          <div className="flex items-center gap-2 text-gray-700">
-            {status.icon}
-            <span className="text-sm">{status.label}</span>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">{campaign.description || "Sem descrição"}</p>
-
-          <div className="mt-4">
-            <h3 className="font-semibold">Templates Utilizados:</h3>
-            <ul className="text-gray-700">
-              <li>
-                📧 <strong>Email:</strong> {campaign.channels.email?.template || "Nenhum"}
-              </li>
-              <li>
-                💬 <strong>WhatsApp:</strong> {campaign.channels.whatsapp?.template || "Nenhum"}
-              </li>
-            </ul>
-          </div>
-
-          <div className="mt-4">
-            <h3 className="font-semibold">Filtros Aplicados:</h3>
-            <ul className="text-gray-700">
-              <li>👥 Gênero: {campaign.filters.gender || "Todos"}</li>
-              <li>
-                🎂 Data de Nascimento:{" "}
-                {campaign.filters.birth_date_range?.start
-                  ? `${campaign.filters.birth_date_range.start} até ${campaign.filters.birth_date_range.end}`
-                  : "Sem filtro"}
-              </li>
-              <li>
-                🏷️ Tags:
-                {campaign.filters.tags.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {campaign.filters.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  " Nenhuma"
-                )}
-              </li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end mt-6">
-        <Button variant="outline" onClick={() => router.push("/campaigns")}>
-          Voltar
-        </Button>
-      </div>
-    </div>
+    </Layout>
   );
 };
 
-// Define o Layout global para a página
-CampaignDetailPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;
-
-export default CampaignDetailPage;
+export default CampaignDetailsPage;
