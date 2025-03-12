@@ -11,9 +11,9 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Audience } from "@/types/audience";
 import { Paginator as PaginatorType } from "@/types/paginator";
-import Paginator from "@/components/Paginator";
-import { Mail, MessageSquare, CheckCircle, Clock, XCircle, Play } from "lucide-react";
+import { Mail, MessageSquare, XCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { audienceStatusIcons } from "@/constants/audienceStatusIcons";
 
 const CampaignDetailsPage = () => {
   const { user, loading } = useUser();
@@ -172,17 +172,27 @@ const CampaignDetailsPage = () => {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            {contact.status === "enviado" ? (
+                            {audienceStatusIcons[
+                              contact.status as keyof typeof audienceStatusIcons
+                            ] ? (
                               <>
-                                <CheckCircle className="w-5 h-5 text-green-600" /> Enviado
-                              </>
-                            ) : contact.status === "pendente" ? (
-                              <>
-                                <Clock className="w-5 h-5 text-yellow-500" /> Pendente
+                                {
+                                  audienceStatusIcons[
+                                    contact.status as keyof typeof audienceStatusIcons
+                                  ].icon
+                                }
+                                <span>
+                                  {
+                                    audienceStatusIcons[
+                                      contact.status as keyof typeof audienceStatusIcons
+                                    ].label
+                                  }
+                                </span>
                               </>
                             ) : (
                               <>
-                                <XCircle className="w-5 h-5 text-red-500" /> Erro
+                                <XCircle className="w-5 h-5 text-gray-600" />{" "}
+                                <span>{contact.status}</span>
                               </>
                             )}
                           </div>

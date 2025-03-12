@@ -5,7 +5,17 @@ export type Audience = {
   campaign_id: string;
   contact_id: string;
   type: "email" | "whatsapp";
-  status: "pendente" | "enviado" | "erro";
+  status:
+    | "pendente"
+    | "fila"
+    | "falha_envio"
+    | "enviado"
+    | "falha_renderizacao"
+    | "rejeitado"
+    | "devolvido"
+    | "reclamado"
+    | "atrasado"
+    | "atualizou_assinatura";
   name: string;
   email: string;
   whatsapp: string;
