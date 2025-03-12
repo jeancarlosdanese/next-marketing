@@ -138,4 +138,60 @@ export const CampaignService = {
       throw error;
     }
   },
+
+  // 🔹 5️⃣ Obter configurações da campanha
+  async getSettings(campaignId: string) {
+    try {
+      const response = await axios.get(
+        `${API_URL}/campaigns/${campaignId}/settings`,
+        getAuthHeaders()
+      );
+
+      // 🔹 Retorna undefined se não houver conteúdo
+      if (response.status === 204 || !response.data) {
+        console.warn("Nenhuma configuração encontrada para esta campanha.");
+        return undefined;
+      }
+      return response.data;
+    } catch (error: any) {
+      // 🔹 Se o erro for 404, trata como "nenhuma configuração"
+      if (error.response && error.response.status === 404) {
+        console.warn("Nenhuma configuração encontrada (404).");
+        return undefined;
+      }
+
+      console.error("Erro ao buscar configurações da campanha", error);
+      throw error;
+    }
+  },
+
+  // 🔹 5️⃣ Criar configurações da campanha
+  async createSettings(campaignId: string, settings: any) {
+    try {
+      await axios.post(`${API_URL}/campaigns/${campaignId}/settings`, settings, getAuthHeaders());
+    } catch (error) {
+      console.error("Erro ao criar configurações da campanha", error);
+      throw error;
+    }
+  },
+
+  // 🔹 6️⃣ Atualizar configurações da campanha
+  async updateSettings(campaignId: string, settings: any) {
+    try {
+      await axios.put(`${API_URL}/campaigns/${campaignId}/settings`, settings, getAuthHeaders());
+    } catch (error) {
+      console.error("Erro ao atualizar configurações da campanha", error);
+      throw error;
+    }
+  },
+
+  // 🔹 7️⃣ Clonar configurações da campanha
+  async cloneLastSettings(campaignId: string) {
+    const response = await axios.post(
+      `${API_URL}/campaigns/${campaignId}/clone-last-settings`,
+      {},
+      getAuthHeaders()
+    );
+    return response.data;
+  },
 };

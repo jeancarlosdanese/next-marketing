@@ -80,7 +80,7 @@ const CampaignDetailsPage = () => {
     if (!campaign) return;
     setIsActivating(true);
     try {
-      await CampaignService.updateStatus(id as string, { status: "ativa" });
+      await CampaignService.updateStatus(id as string, { status: "processando" });
       toast.success("Campanha ativada com sucesso!");
       fetchData(); // Atualiza o status da campanha na UI
     } catch (error) {
@@ -100,7 +100,7 @@ const CampaignDetailsPage = () => {
           <h1 className="text-2xl font-bold">Detalhes da Campanha</h1>
 
           {/* Botão de Ativação */}
-          {campaign.status !== "ativa" && (
+          {campaign.status !== "processando" && (
             <Button
               onClick={activateCampaign}
               disabled={isActivating}

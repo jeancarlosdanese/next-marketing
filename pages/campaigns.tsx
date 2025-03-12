@@ -22,19 +22,7 @@ import {
   SelectSeparator,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-
-// 🔹 Ícones e rótulos para os novos status da campanha
-const statusIcons = {
-  pendente: { icon: <Clock className="w-4 h-4 text-yellow-600" />, label: "Pendente" },
-  configurada: { icon: <ListChecks className="w-4 h-4 text-blue-500" />, label: "Configurada" },
-  com_audiencia: { icon: <Play className="w-4 h-4 text-purple-500" />, label: "Com Audiência" },
-  processando: {
-    icon: <RefreshCw className="w-4 h-4 text-orange-500 animate-spin" />,
-    label: "Processando",
-  },
-  ativa: { icon: <CheckCircle className="w-4 h-4 text-green-600" />, label: "Ativa" },
-  concluida: { icon: <XCircle className="w-4 h-4 text-gray-500" />, label: "Concluída" },
-};
+import { statusIcons } from "@/constants/statusIcons";
 
 const CampaignsPage = () => {
   const { user, loading } = useUser();
@@ -158,9 +146,9 @@ const CampaignsPage = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => router.push(`/campaigns/edit?id=${campaign.id}`)}
+                      onClick={() => router.push(`/campaigns/manage/${campaign.id}`)}
                     >
-                      Editar
+                      Gerenciar
                     </Button>
                     <Button
                       variant="default"

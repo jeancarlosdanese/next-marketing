@@ -18,7 +18,7 @@ export type Campaign = {
       state: string;
     };
   };
-  status: "pendente" | "ativa" | "concluida";
+  status: "pendente" | "processando" | "enviando" | "concluida" | "cancelada";
   created_at: string;
   updated_at: string;
 };
