@@ -1,6 +1,6 @@
 // File: components/Campaign/CampaignSettings.tsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,12 @@ import { toast } from "sonner";
 import { CampaignService } from "@/services/campaign";
 import { se } from "date-fns/locale";
 
-const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
+const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: string }) => {
   const [settings, setSettings] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isCloning, setIsCloning] = useState(false);
-  const campaignId = campaign.id;
+  // Se estiver pendente ou cancelada, permitir edição
+  const isEditing = useMemo(() => status === "pendente" || status === "cancelada", [status]);
 
   useEffect(() => {
     async function fetchSettings() {
@@ -26,7 +27,6 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
     }
 
     fetchSettings();
-    console.log("Settings", settings);
   }, [campaignId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -79,6 +79,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
       <div className="grid gap-4">
         <label>Marca:</label>
         <Input
+          disabled={!isEditing}
           name="brand"
           value={settings.brand || ""}
           onChange={handleChange}
@@ -87,6 +88,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Assunto do E-mail:</label>
         <Input
+          disabled={!isEditing}
           name="subject"
           value={settings.subject || ""}
           onChange={handleChange}
@@ -95,6 +97,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Tom de Voz:</label>
         <Input
+          disabled={!isEditing}
           name="tone"
           value={settings.tone || ""}
           onChange={handleChange}
@@ -103,6 +106,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Remetente do E-mail:</label>
         <Input
+          disabled={!isEditing}
           name="email_from"
           value={settings.email_from || ""}
           onChange={handleChange}
@@ -111,6 +115,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Resposta do E-mail:</label>
         <Input
+          disabled={!isEditing}
           name="email_reply"
           value={settings.email_reply || ""}
           onChange={handleChange}
@@ -119,6 +124,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Rodapé do E-mail:</label>
         <Textarea
+          disabled={!isEditing}
           name="email_footer"
           value={settings.email_footer || ""}
           onChange={handleChange}
@@ -127,6 +133,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Instruções do E-mail:</label>
         <Textarea
+          disabled={!isEditing}
           name="email_instructions"
           value={settings.email_instructions || ""}
           onChange={handleChange}
@@ -135,6 +142,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Remetente do WhatsApp:</label>
         <Input
+          disabled={!isEditing}
           name="whatsapp_from"
           value={settings.whatsapp_from || ""}
           onChange={handleChange}
@@ -143,6 +151,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Resposta do WhatsApp:</label>
         <Input
+          disabled={!isEditing}
           name="whatsapp_reply"
           value={settings.whatsapp_reply || ""}
           onChange={handleChange}
@@ -151,6 +160,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Rodapé do WhatsApp:</label>
         <Textarea
+          disabled={!isEditing}
           name="whatsapp_footer"
           value={settings.whatsapp_footer || ""}
           onChange={handleChange}
@@ -159,6 +169,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
 
         <label>Instruções do WhatsApp:</label>
         <Textarea
+          disabled={!isEditing}
           name="whatsapp_instructions"
           value={settings.whatsapp_instructions || ""}
           onChange={handleChange}
@@ -167,7 +178,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
       </div>
 
       <div className="mt-4 flex gap-3">
-        <Button onClick={handleSave} disabled={isSaving}>
+        <Button onClick={handleSave} disabled={!isEditing || isSaving}>
           {isSaving ? "Salvando..." : "💾 Salvar Configuração"}
         </Button>
 
@@ -175,7 +186,7 @@ const CampaignSettings = ({ campaign }: { campaign: { id: string } }) => {
           <Button
             variant="default"
             onClick={handleCloneSettings}
-            disabled={settings.id || isCloning}
+            disabled={!isEditing || settings.id || isCloning}
           >
             {isCloning ? "Clonando..." : "🔄 Clonar Última Configuração"}
           </Button>

@@ -1,6 +1,6 @@
 // File: components/Campaign/CampaignInfo.tsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Campaign } from "@/types/campaign";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,11 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
   const [emailTemplates, setEmailTemplates] = useState<any[]>([]);
   const [whatsappTemplates, setWhatsappTemplates] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  // Se estiver pendente ou cancelada, permitir edição
+  const isEditing = useMemo(
+    () => campaign.status === "pendente" || campaign.status === "cancelada",
+    [campaign.status]
+  );
 
   useEffect(() => {
     async function fetchTemplates() {
@@ -71,6 +76,7 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
       <div className="grid gap-4">
         <label>Nome:</label>
         <Input
+          disabled={!isEditing}
           name="name"
           value={updatedCampaign.name}
           onChange={handleChange}
@@ -79,6 +85,7 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
 
         <label>Descrição:</label>
         <Textarea
+          disabled={!isEditing}
           name="description"
           value={updatedCampaign.description || ""}
           onChange={handleChange}
@@ -87,6 +94,7 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
 
         <label>Template Email:</label>
         <Select
+          disabled={!isEditing}
           value={updatedCampaign.channels.email.template}
           onValueChange={(value) =>
             setUpdatedCampaign((prev) => ({
@@ -115,6 +123,7 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
 
         <label>Template WhatsApp:</label>
         <Select
+          disabled={!isEditing}
           value={updatedCampaign.channels.whatsapp?.template}
           onValueChange={(value) =>
             setUpdatedCampaign((prev) => ({
@@ -146,7 +155,7 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
       </div>
 
       <div className="mt-4">
-        <Button onClick={handleSave} disabled={isSaving}>
+        <Button onClick={handleSave} disabled={!isEditing || isSaving}>
           {isSaving ? "Salvando..." : "💾 Salvar Dados"}
         </Button>
       </div>

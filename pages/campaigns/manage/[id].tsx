@@ -95,7 +95,7 @@ const ManageCampaignPage = () => {
           </TabsContent>
 
           <TabsContent value="configuracao">
-            <CampaignSettings campaign={campaign} />
+            <CampaignSettings campaignId={campaign.id} status={campaign.status} />
           </TabsContent>
 
           <TabsContent value="audiencia">

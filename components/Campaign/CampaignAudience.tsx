@@ -24,6 +24,7 @@ import {
 import { CheckSquare, PlusCircle, Square, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { log } from "console";
 
 type Filters = {
   name: string;
@@ -56,6 +57,8 @@ const CampaignAudience = ({ campaignId, status }: { campaignId: string; status: 
   const [audiences, setAudiences] = useState<Audience[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  // Se estiver pendente ou cancelada, permitir edição
+  const isEditing = useMemo(() => status === "pendente" || status === "cancelada", [status]);
 
   // -------------------------------------
   // Estados de filtros e paginação unificados
@@ -304,200 +307,214 @@ const CampaignAudience = ({ campaignId, status }: { campaignId: string; status: 
       <h1 className="text-2xl font-bold mb-6">Audiência da Campanha</h1>
 
       {/* 🔹 Filtros */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Filtros {isFetching && <Spinner className="sm" />}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {/* Nome, Email e WhatsApp */}
-            <Input
-              disabled={status === "pendente" || status === "cancelada"}
-              name="name"
-              value={filters.name}
-              onChange={handleFilterChange}
-              placeholder="Nome"
-            />
-            <Input
-              name="email"
-              value={filters.email}
-              onChange={handleFilterChange}
-              placeholder="Email"
-            />
-            <Input
-              name="whatsapp"
-              value={filters.whatsapp}
-              onChange={handleFilterChange}
-              placeholder="WhatsApp"
-            />
+      {isEditing && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Filtros {isFetching && <Spinner className="sm" />}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Nome, Email e WhatsApp */}
+              <Input
+                disabled={!isEditing}
+                name="name"
+                value={filters.name}
+                onChange={handleFilterChange}
+                placeholder="Nome"
+              />
+              <Input
+                disabled={!isEditing}
+                name="email"
+                value={filters.email}
+                onChange={handleFilterChange}
+                placeholder="Email"
+              />
+              <Input
+                disabled={!isEditing}
+                name="whatsapp"
+                value={filters.whatsapp}
+                onChange={handleFilterChange}
+                placeholder="WhatsApp"
+              />
 
-            {/* Filtro de Gênero */}
-            <Select
-              value={filters.gender}
-              onValueChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  gender: value === "none" ? "" : value,
-                }))
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecionar Gênero" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="masculino">Masculino</SelectItem>
-                  <SelectItem value="feminino">Feminino</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectGroup>
-                <SelectSeparator />
-                <SelectItem className="bg-secondary flex justify-center" value="none">
-                  <span className="text-xs">Limpar</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Filtro de Gênero */}
+              <Select
+                disabled={!isEditing}
+                value={filters.gender}
+                onValueChange={(value) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    gender: value === "none" ? "" : value,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecionar Gênero" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectItem className="bg-secondary flex justify-center" value="none">
+                    <span className="text-xs">Limpar</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Data de nascimento */}
-            <Input
-              type="date"
-              name="birth_date_start"
-              value={filters.birth_date_start}
-              onChange={handleFilterChange}
-            />
-            <Input
-              type="date"
-              name="birth_date_end"
-              value={filters.birth_date_end}
-              onChange={handleFilterChange}
-            />
+              {/* Data de nascimento */}
+              <Input
+                disabled={!isEditing}
+                type="date"
+                name="birth_date_start"
+                value={filters.birth_date_start}
+                onChange={handleFilterChange}
+              />
+              <Input
+                disabled={!isEditing}
+                type="date"
+                name="birth_date_end"
+                value={filters.birth_date_end}
+                onChange={handleFilterChange}
+              />
 
-            {/* Endereço */}
-            <Input
-              name="bairro"
-              value={filters.bairro}
-              onChange={handleFilterChange}
-              placeholder="Bairro"
-            />
-            <Input
-              name="cidade"
-              value={filters.cidade}
-              onChange={handleFilterChange}
-              placeholder="Cidade"
-            />
-            <Input
-              name="estado"
-              value={filters.estado}
-              onChange={handleFilterChange}
-              placeholder="Estado"
-            />
+              {/* Endereço */}
+              <Input
+                disabled={!isEditing}
+                name="bairro"
+                value={filters.bairro}
+                onChange={handleFilterChange}
+                placeholder="Bairro"
+              />
+              <Input
+                disabled={!isEditing}
+                name="cidade"
+                value={filters.cidade}
+                onChange={handleFilterChange}
+                placeholder="Cidade"
+              />
+              <Input
+                disabled={!isEditing}
+                name="estado"
+                value={filters.estado}
+                onChange={handleFilterChange}
+                placeholder="Estado"
+              />
 
-            {/* Tags */}
-            <Input
-              name="tags"
-              value={filters.tags}
-              onChange={(e) => setFilters((prev) => ({ ...prev, tags: e.target.value }))}
-              onBlur={() => {
-                setFilters((prev) => ({
-                  ...prev,
-                  tags: prev.tags
-                    .split(",")
-                    .map((tag) => tag.trim())
-                    .filter((tag) => tag.length > 0)
-                    .join(", "),
-                }));
-              }}
-              placeholder="Tags (separadas por vírgula)"
-            />
-          </div>
+              {/* Tags */}
+              <Input
+                disabled={!isEditing}
+                name="tags"
+                value={filters.tags}
+                onChange={(e) => setFilters((prev) => ({ ...prev, tags: e.target.value }))}
+                onBlur={() => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    tags: prev.tags
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter((tag) => tag.length > 0)
+                      .join(", "),
+                  }));
+                }}
+                placeholder="Tags (separadas por vírgula)"
+              />
+            </div>
 
-          {/* Botão Adicionar Todos dentro do painel de Filtros */}
-          <div className="flex justify-end mt-4">
-            <Button
-              onClick={addAllContactsToAudience}
-              disabled={!contacts || contacts.length === 0}
-              variant="default"
-            >
-              <PlusCircle className="w-5 h-5 mr-2" />
-              Adicionar Todos os Filtrados
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            {/* Botão Adicionar Todos dentro do painel de Filtros */}
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={addAllContactsToAudience}
+                disabled={!isEditing || !contacts || contacts.length === 0}
+                variant="default"
+              >
+                <PlusCircle className="w-5 h-5 mr-2" />
+                Adicionar Todos os Filtrados
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 🔹 Contatos Disponíveis */}
+      {isEditing && (
+        <Card className="mb-6 bg-contacts-available">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck size={20} className="text-primary" /> Contatos Disponíveis{" "}
+              {isFetching && <Spinner className="sm" />}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contacts?.length > 0 ? (
+              <>
+                {/* Botões dentro do painel */}
+                <div className="flex justify-between mb-4">
+                  <Button onClick={handleSelectAll} variant="default" disabled={!isEditing}>
+                    {selectAll ? (
+                      <>
+                        <CheckSquare className="w-5 h-5 mr-2" />
+                        Desmarcar Todos
+                      </>
+                    ) : (
+                      <>
+                        <Square className="w-5 h-5 mr-2" />
+                        Selecionar Todos
+                      </>
+                    )}
+                  </Button>
 
-      <Card className="mb-6 bg-contacts-available">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCheck size={20} className="text-primary" /> Contatos Disponíveis{" "}
-            {isFetching && <Spinner className="sm" />}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {contacts?.length > 0 ? (
-            <>
-              {/* Botões dentro do painel */}
-              <div className="flex justify-between mb-4">
-                <Button onClick={handleSelectAll} variant="default">
-                  {selectAll ? (
-                    <>
-                      <CheckSquare className="w-5 h-5 mr-2" />
-                      Desmarcar Todos
-                    </>
-                  ) : (
-                    <>
-                      <Square className="w-5 h-5 mr-2" />
-                      Selecionar Todos
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  onClick={addContactsToAudience}
-                  disabled={selectedContacts.length === 0}
-                  variant="default"
-                >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  Adicionar Selecionados
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {contacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="flex items-center bg-muted p-4 rounded-lg shadow-md"
+                  <Button
+                    onClick={addContactsToAudience}
+                    disabled={!isEditing || selectedContacts.length === 0}
+                    variant="default"
                   >
-                    <Checkbox
-                      checked={contact.id ? selectedContacts.includes(contact.id) : false}
-                      onCheckedChange={() => contact.id && handleSelectContact(contact.id)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium">{contact.name}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Paginação dos Contatos Disponíveis */}
-              {contacts.length > 0 && (
-                <div className="p-4">
-                  <Paginator
-                    totalRecords={pagination.available.total_records}
-                    totalPages={pagination.available.total_pages}
-                    currentPage={pagination.available.current_page}
-                    perPage={pagination.available.per_page}
-                    onPageChange={handleAvailablePageChange}
-                  />
+                    <UserPlus className="w-5 h-5 mr-2" />
+                    Adicionar Selecionados
+                  </Button>
                 </div>
-              )}
-            </>
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              Nenhum contato disponível para adicionar.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {contacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      className="flex items-center bg-muted p-4 rounded-lg shadow-md"
+                    >
+                      <Checkbox
+                        disabled={!isEditing}
+                        checked={contact.id ? selectedContacts.includes(contact.id) : false}
+                        onCheckedChange={() => contact.id && handleSelectContact(contact.id)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium">{contact.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Paginação dos Contatos Disponíveis */}
+                {contacts.length > 0 &&
+                  pagination.available.total_records > pagination.available.per_page && (
+                    <div className="p-4">
+                      <Paginator
+                        totalRecords={pagination.available.total_records}
+                        totalPages={pagination.available.total_pages}
+                        currentPage={pagination.available.current_page}
+                        perPage={pagination.available.per_page}
+                        onPageChange={handleAvailablePageChange}
+                      />
+                    </div>
+                  )}
+              </>
+            ) : (
+              <p className="text-gray-500 text-center py-4">
+                Nenhum contato disponível para adicionar.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* 🔹 Contatos Adicionados */}
       <Card className="mb-6 bg-contacts-added">
@@ -506,11 +523,16 @@ const CampaignAudience = ({ campaignId, status }: { campaignId: string; status: 
             <UserCheck size={20} className="text-primary" /> Contatos Adicionados
           </CardTitle>
         </CardHeader>
+
         <CardContent>
           {audiences?.length > 0 ? (
             <>
               <div className="flex justify-end mb-4">
-                <Button onClick={removeAllContactsFromAudience} variant="destructive">
+                <Button
+                  onClick={removeAllContactsFromAudience}
+                  variant="destructive"
+                  disabled={!isEditing}
+                >
                   <Trash2 className="w-5 h-5 mr-2" />
                   Remover Todos
                 </Button>
@@ -524,6 +546,7 @@ const CampaignAudience = ({ campaignId, status }: { campaignId: string; status: 
                   >
                     <span className="text-sm font-medium">{aud.name}</span>
                     <Button
+                      disabled={!isEditing}
                       variant="ghost"
                       size="icon"
                       onClick={() => removeContactFromAudience(aud.id)}
@@ -536,15 +559,18 @@ const CampaignAudience = ({ campaignId, status }: { campaignId: string; status: 
               </div>
 
               {/* Paginação dos Contatos Adicionados */}
-              <div className="p-4">
-                <Paginator
-                  totalRecords={pagination.audience.total_records}
-                  totalPages={pagination.audience.total_pages}
-                  currentPage={pagination.audience.current_page}
-                  perPage={pagination.audience.per_page}
-                  onPageChange={handleAudiencePageChange}
-                />
-              </div>
+              {audiences.length > 0 &&
+                pagination.audience.total_records > pagination.audience.per_page && (
+                  <div className="p-4">
+                    <Paginator
+                      totalRecords={pagination.audience.total_records}
+                      totalPages={pagination.audience.total_pages}
+                      currentPage={pagination.audience.current_page}
+                      perPage={pagination.audience.per_page}
+                      onPageChange={handleAudiencePageChange}
+                    />
+                  </div>
+                )}
             </>
           ) : (
             <p className="text-gray-500 text-center py-4">
