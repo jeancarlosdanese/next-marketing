@@ -31,12 +31,6 @@ const EditCampaignPage = () => {
     name: "",
     description: "",
     channels: { email: { template: "", priority: 1 }, whatsapp: { template: "", priority: 2 } },
-    filters: {
-      tags: [],
-      gender: "",
-      birth_date_range: { start: "", end: "" },
-      locale: { neighborhood: "", city: "", state: "" },
-    },
     status: "pendente",
   });
 
@@ -69,7 +63,6 @@ const EditCampaignPage = () => {
             name: data.name || "",
             description: data.description || "",
             channels: data.channels || prev.channels,
-            filters: data.filters || prev.filters,
             status: data.status || "pendente",
           }));
         }
@@ -132,8 +125,6 @@ const EditCampaignPage = () => {
       </h1>
 
       <LayoutForm onSave={handleSubmit}>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-
         {error && <p className="text-red-500 text-center">{error}</p>}
 
         {/* Nome e Descrição */}

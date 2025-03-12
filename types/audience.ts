@@ -10,6 +10,7 @@ export type Audience = {
     | "fila"
     | "falha_envio"
     | "enviado"
+    | "entregue"
     | "falha_renderizacao"
     | "rejeitado"
     | "devolvido"

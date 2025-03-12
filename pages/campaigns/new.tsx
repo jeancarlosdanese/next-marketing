@@ -30,11 +30,6 @@ const NewCampaignPage = () => {
     name: "",
     description: "",
     channels: { email: { template: "", priority: 1 }, whatsapp: { template: "", priority: 2 } },
-    filters: {
-      tags: [],
-      gender: "",
-      birth_date_range: { start: "", end: "" },
-    },
     status: "pendente",
   });
 
@@ -68,23 +63,6 @@ const NewCampaignPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setCampaign({ ...campaign, [e.target.name]: e.target.value });
-  };
-
-  const handleTagsChange = (value: string, resetInput: () => void) => {
-    if (!value.trim()) return;
-    setCampaign((prev) => ({
-      ...prev!,
-      filters: { ...prev!.filters, tags: [...(prev!.filters.tags || []), value.trim()] },
-    }));
-
-    resetInput();
-  };
-
-  const handleTagRemove = (tag: string) => {
-    setCampaign((prev) => ({
-      ...prev!,
-      filters: { ...prev!.filters, tags: prev!.filters.tags.filter((t) => t !== tag) },
-    }));
   };
 
   const handleSubmit = async () => {
@@ -125,26 +103,24 @@ const NewCampaignPage = () => {
       <LayoutForm onSave={handleSubmit}>
         {error && <p className="text-red-500 text-center">{error}</p>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-          <div>
-            <label className="block mt-3 sm:mt-4">Nome:</label>
-            <Input
-              name="name"
-              value={campaign.name}
-              onChange={handleChange}
-              placeholder="Nome da Campanha *"
-            />
-          </div>
-          <div>
-            <label className="block mt-3 sm:mt-4">Descrição:</label>
-            <Textarea
-              name="description"
-              value={campaign.description || ""}
-              onChange={(e) => setCampaign({ ...campaign, description: e.target.value })}
-              placeholder="Descrição"
-              className="min-h-[80px]"
-            />
-          </div>
+        <div className="grid gap-2 sm:gap-4">
+          <label className="block mt-3 sm:mt-4">Nome:</label>
+          <Input
+            name="name"
+            value={campaign.name}
+            onChange={handleChange}
+            placeholder="Nome da Campanha *"
+          />
+        </div>
+        <div>
+          <label className="block mt-3 sm:mt-4">Descrição:</label>
+          <Textarea
+            name="description"
+            value={campaign.description || ""}
+            onChange={(e) => setCampaign({ ...campaign, description: e.target.value })}
+            placeholder="Descrição"
+            className="min-h-[80px]"
+          />
         </div>
 
         <label className="block mt-3 sm:mt-4">Template Email:</label>
@@ -205,35 +181,6 @@ const NewCampaignPage = () => {
             )}
           </SelectContent>
         </Select>
-
-        {/* Tags */}
-        <label className="block mt-3 sm:mt-4">Tags:</label>
-        <Input
-          placeholder="Adicione uma tag"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              const input = e.currentTarget;
-              handleTagsChange(input.value, () => (input.value = ""));
-            }
-          }}
-        />
-        <div className="flex flex-wrap gap-2 mt-2">
-          {campaign.filters.tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className="flex items-center space-x-2 px-2 py-1 text-xs font-semibold shadow-md transition bg-teal-700 border-teal-800 text-white hover:bg-teal-800 hover:border-teal-900"
-            >
-              {tag}
-              <button
-                className="ml-1 text-white hover:text-gray-100 focus:outline-none"
-                onClick={() => handleTagRemove(tag)}
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
-        </div>
       </LayoutForm>
     </div>
   );
