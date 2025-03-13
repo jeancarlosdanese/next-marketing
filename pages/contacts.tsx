@@ -127,7 +127,7 @@ const ContactsPage = () => {
               </CardHeader>
 
               <CardContent className="flex-1">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {contact.email && (
                     <p
                       className="text-sm text-blue-600 font-semibold truncate"
@@ -153,7 +153,7 @@ const ContactsPage = () => {
                 </div>
               </CardContent>
               <CardContent>
-                <div className="grid grid-cols-2 gap-2 mt-4">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="outline"
                     size="sm"
