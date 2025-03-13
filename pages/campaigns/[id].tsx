@@ -153,8 +153,8 @@ const CampaignDetailsPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {audiences.length > 0 ? (
-                    audiences.map((contact) => (
+                  {audiences?.length > 0 ? (
+                    audiences?.map((contact) => (
                       <tr key={contact.id} className="border-b text-gray-900">
                         <td className="px-4 py-3">{contact.name}</td>
                         <td className="px-4 py-3">

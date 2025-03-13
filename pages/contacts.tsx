@@ -4,7 +4,7 @@ import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { ContactService } from "@/services/contact";
-import { Contact } from "@/types/contact";
+import { ContactList } from "@/types/contact";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Paginator as PaginatorType } from "@/types/paginator";
@@ -13,21 +13,14 @@ import { format } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import Spinner from "@/components/Spinner";
 import Layout from "@/components/Layout";
-import { Trash, Pencil, UploadCloud } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Trash, Pencil, UploadCloud, Mars, Venus, NonBinary } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDelete } from "@/components/ui/ConfirmDelete";
 
 const ContactsPage = () => {
   const { user, loading } = useUser();
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [pagination, setPagination] = useState<Omit<PaginatorType<Contact>, "data">>({
+  const [contacts, setContacts] = useState<ContactList[]>([]);
+  const [pagination, setPagination] = useState<Omit<PaginatorType<ContactList>, "data">>({
     total_records: 0,
     total_pages: 1,
     current_page: 1,
@@ -97,7 +90,7 @@ const ContactsPage = () => {
 
   return (
     <div className="p-6">
-      {/* 🔹 Cabeçalho e botões responsivos */}
+      {/* Cabeçalho e botões responsivos */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Contatos</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -122,38 +115,43 @@ const ContactsPage = () => {
         {contacts.length > 0 ? (
           contacts.map((contact) => (
             <Card key={contact.id} className="shadow-lg flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle>{contact.name}</CardTitle>
+              <CardHeader className="grid grid-cols-[10fr_1fr] justify-between">
+                <CardTitle className="flex-1 text-left">{contact.name}</CardTitle>
+                {contact.gender && (
+                  <div className="flex items-center space-x-1">
+                    {contact.gender === "masculino" && <Mars className="w-4 h-4 text-blue-500" />}
+                    {contact.gender === "feminino" && <Venus className="w-4 h-4 text-pink-500" />}
+                    {contact.gender === "outro" && <NonBinary className="w-4 h-4 text-gray-500" />}
+                  </div>
+                )}
               </CardHeader>
+
               <CardContent className="flex-1">
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Primeira coluna */}
-                  <div>
+                  {contact.email && (
                     <p
                       className="text-sm text-blue-600 font-semibold truncate"
-                      title={contact.email || "Não informado"}
+                      title={contact.email}
                     >
-                      📧 {contact.email || "Não informado"}
+                      📧 {contact.email}
                     </p>
-                    <p className="text-sm text-gray-600 truncate">
+                  )}
+                  {contact.birth_date && (
+                    <p className="text-sm text-gray-600">
                       🎂 Nascimento: {formatDate(contact.birth_date)}
                     </p>
-                  </div>
-
-                  {/* Segunda coluna */}
-                  <div>
+                  )}
+                  {contact.whatsapp && (
                     <p className="text-sm text-gray-600">📱 {formatPhone(contact.whatsapp)}</p>
+                  )}
+                  {(contact.cidade || contact.estado) && (
                     <p className="text-sm text-gray-600 truncate">
-                      📍{" "}
-                      {contact.cidade
-                        ? `${contact.cidade}, ${contact.estado || ""}`
-                        : "Não informado"}
+                      📍 {contact.cidade}
+                      {contact.cidade && contact.estado ? `, ${contact.estado}` : ""}
                     </p>
-                  </div>
+                  )}
                 </div>
               </CardContent>
-
-              {/* 🔹 Botões no final do Card */}
               <CardContent>
                 <div className="grid grid-cols-2 gap-2 mt-4">
                   <Button
@@ -165,7 +163,6 @@ const ContactsPage = () => {
                     <Pencil className="w-4 h-4" />
                     Editar
                   </Button>
-                  {/* 🔹 Modal de Confirmação de Exclusão */}
                   <ConfirmDelete
                     onConfirm={() => contact.id && deleteContact(contact.id)}
                     entityName="Contato"
