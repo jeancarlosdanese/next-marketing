@@ -79,7 +79,7 @@ export default function EditTemplatePage() {
     <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold mb-6">Editar Template</h1>
 
-      <LayoutForm onSave={handleSubmit}>
+      <LayoutForm onSave={handleSubmit} onCancel={() => router.push("/templates")}>
         <div className="space-y-4">
           <Input
             name="name"

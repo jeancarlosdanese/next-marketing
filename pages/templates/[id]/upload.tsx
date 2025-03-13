@@ -8,19 +8,19 @@ import { Template } from "@/types/template";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import { toast } from "sonner";
 import Spinner from "@/components/Spinner";
+import ReactMarkdown from "react-markdown";
+import { Editor } from "@monaco-editor/react";
 
 export default function UploadTemplatePage() {
   const { user, loading } = useUser();
   const router = useRouter();
   const { id } = router.query;
   const [template, setTemplate] = useState<Template | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [content, setContent] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -35,8 +35,20 @@ export default function UploadTemplatePage() {
       try {
         const data = await TemplateService.getById(id as string);
         setTemplate(data);
+        setContent(data.content || "");
+
+        setFileName(
+          data.has_file ? `${data.name}.${data.channel === "email" ? "html" : "md"}` : null
+        );
+
+        // 🔹 Tenta baixar o template salvo
+        const downloadedContent = await TemplateService.downloadTemplate(
+          id as string,
+          data.channel
+        );
+        if (downloadedContent) setContent(downloadedContent);
       } catch (error) {
-        toast.success("Erro ao carregar template");
+        toast.error("Erro ao carregar template");
         router.push("/templates");
       }
     }
@@ -44,88 +56,133 @@ export default function UploadTemplatePage() {
     fetchTemplate();
   }, [id, loading, user, router]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-
-    if (!selectedFile) {
-      toast.info("Selecione um arquivo para enviar.");
-      return;
-    }
-
-    setFile(selectedFile);
-
-    // 🔹 Criar pré-visualização para garantir que o arquivo foi carregado corretamente
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setPreview(event.target?.result as string);
-    };
-    reader.readAsText(selectedFile);
-
-    toast.success("Arquivo carregado com sucesso.");
-  };
-
   const handleUpload = async () => {
-    if (!file || !template) {
-      toast.info("Selecione um arquivo para enviar.");
+    if (!content || !template) {
+      toast.info("Adicione um conteúdo antes de enviar.");
       return;
     }
 
     setIsUploading(true);
     try {
+      const file = new File(
+        [content],
+        `${template.name}.${template.channel === "email" ? "html" : "md"}`,
+        { type: "text/plain" }
+      );
       await TemplateService.uploadTemplate(template.id, file, template.channel);
       toast.success("Template enviado com sucesso.");
-      router.push(`/templates/${template.id}`);
+      router.push(`/templates/edit?id=${template.id}`);
     } catch (error) {
       toast.error("Erro ao enviar template.");
-      console.error("❌ Erro ao enviar template:", error);
     } finally {
       setIsUploading(false);
     }
   };
 
+  const handleDownload = () => {
+    if (!content) return;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    // Define o nome do arquivo, utilizando o fileName se disponível
+    a.download = fileName || "template.txt";
+    document.body.appendChild(a); // Necessário para alguns navegadores
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name); // Exibe o nome do arquivo
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setTimeout(() => setContent(e.target?.result as string), 300); // Atraso para evitar flickering
+    };
+    reader.readAsText(file);
+  };
+
   if (loading) return <Spinner />;
-  if (!user) return null;
-  if (!template) return null;
+  if (!user || !template) return null;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col md:flex-row bg-background text-foreground">
       <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100">
-        <Header user={user} />
-        <div className="max-w-xl mx-auto bg-white shadow-md rounded-lg p-6">
-          <h1 className="text-2xl font-bold mb-4">Upload de Template</h1>
-          <p>
-            <strong>Nome:</strong> {template.name}
-          </p>
-          <p>
-            <strong>Canal:</strong>{" "}
-            {template.channel === "email" ? "📧 E-mail (HTML)" : "📱 WhatsApp (Markdown)"}
+      <div className="flex-1 p-4 md:p-6 flex flex-col gap-4">
+        <Header />
+
+        {/* Área de Botões */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-2">
+          <h1 className="text-lg font-bold text-center md:text-left">
+            {template.channel === "email" ? "Edição de HTML" : "Edição de Markdown"}
+          </h1>
+          <p className="text-sm text-gray-400">
+            {template.channel === "email"
+              ? "Edite o HTML do seu template de e-mail"
+              : "Edite o Markdown do seu template de WhatsApp"}
           </p>
 
-          <div className="mt-4">
-            <Input
+          <div className="flex flex-col md:flex-row gap-2 px-2">
+            <input
               type="file"
-              accept={template?.channel === "whatsapp" ? ".md" : ".html"} // 🔹 Garante que sempre há um valor válido
-              onChange={handleFileChange}
+              accept=".html,.md"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
             />
-
-            {preview && (
-              <div className="mt-4 p-4 border rounded bg-gray-50">
-                <p className="font-bold mb-2">Pré-visualização:</p>
-                <div className="border p-2 bg-white text-sm max-h-40 overflow-auto">
-                  <pre>{preview}</pre>
-                </div>
-              </div>
+            <Button variant="default" asChild>
+              <label htmlFor="file-upload">
+                {fileName ? `📂 ${fileName}` : "Escolher Arquivo"}
+              </label>
+            </Button>
+            {content && (
+              <>
+                <Button onClick={handleUpload} disabled={isUploading}>
+                  {isUploading ? "Enviando..." : "Enviar Template"}
+                </Button>
+                <Button onClick={handleDownload}>Download</Button>
+              </>
             )}
-          </div>
-
-          <div className="mt-6 flex justify-between">
-            <Button variant="outline" onClick={() => router.push(`/templates/${template.id}`)}>
+            <Button
+              variant="default"
+              onClick={() => router.push(`/templates/edit?id=${template.id}`)}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleUpload} disabled={isUploading}>
-              {isUploading ? "Enviando..." : "Enviar Template"}
-            </Button>
+          </div>
+        </div>
+
+        {/* Container para Source e View empilhados em mobile */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Source */}
+          <div className="flex-1 rounded-md shadow p-4 bg-[#1e1e1e] text-[#d4d4d4]">
+            <p className="font-semibold mb-2">Fonte do Template</p>
+            <Editor
+              height="70vh"
+              defaultLanguage={template.channel === "email" ? "html" : "markdown"}
+              value={content}
+              onChange={(value) => setContent(value || "")}
+              theme={"vs-dark"} // Mantém o padrão VSCode default
+              options={{ minimap: { enabled: false }, fontSize: 14 }}
+            />
+          </div>
+
+          {/* View */}
+          <div className="flex-1 rounded-md shadow p-4 bg-card text-card-foreground">
+            <p className="font-semibold mb-2">Pré-visualização</p>
+            {template.channel === "email" ? (
+              <div
+                className="border rounded p-4 bg-muted"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+            ) : (
+              <div className="prose dark:prose-invert border rounded p-4 transition-colors bg-muted">
+                <ReactMarkdown>{content}</ReactMarkdown>
+              </div>
+            )}
           </div>
         </div>
       </div>

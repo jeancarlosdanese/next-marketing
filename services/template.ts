@@ -34,10 +34,12 @@ export const TemplateService = {
     return response.data;
   },
 
+  // 🔹 Método para deletar um template
   async delete(id: string) {
     await axios.delete(`${API_URL}/templates/${id}`, getAuthHeaders());
   },
 
+  // 🔹 Método para fazer upload do template
   async uploadTemplate(id: string, file: File, type: "email" | "whatsapp") {
     if (!file) {
       toast.info("Selecione um arquivo para enviar.");
@@ -64,6 +66,23 @@ export const TemplateService = {
       toast.error("Erro ao fazer upload");
       console.error("❌ Erro ao fazer upload:", error);
       throw error;
+    }
+  },
+
+  // 🔹 Método para baixar o template
+  async downloadTemplate(id: string, type: "email" | "whatsapp"): Promise<string> {
+    try {
+      const response = await axios.get(`${API_URL}/templates/${id}/${type}/download`, {
+        headers: getAuthHeaders().headers,
+        responseType: "blob", // Para garantir que recebemos um arquivo
+      });
+
+      // 🔹 Convertendo Blob para string (texto do template)
+      return await response.data.text();
+    } catch (error) {
+      toast.error("Erro ao baixar o template.");
+      console.error("❌ Erro ao baixar o template:", error);
+      return "";
     }
   },
 };
