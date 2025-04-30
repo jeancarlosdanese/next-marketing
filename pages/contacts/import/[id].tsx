@@ -17,12 +17,14 @@ import ImportConfig from "@/components/ImportConfig";
 import { ContactImportConfig } from "@/types/contact";
 import { useUser } from "@/context/UserContext";
 import Spinner from "@/components/Spinner";
+import { ConfirmDelete } from "@/components/ui/ConfirmDelete";
 
 export default function EditImportPage() {
   const { user, loading } = useUser();
   const router = useRouter();
   const { id } = router.query;
 
+  const tabFromQuery = router.query.tab;
   const [importData, setImportData] = useState<any>(null);
   const [config, setConfig] = useState<ContactImportConfig>(() => ({
     about_data: { source: "", rules: "" },
@@ -41,8 +43,9 @@ export default function EditImportPage() {
     last_contact_at: { source: "", rules: "" },
   }));
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(tabFromQuery === "config" ? "config" : "details");
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -89,45 +92,88 @@ export default function EditImportPage() {
     }
   };
 
+  const handleStartProcessing = async () => {
+    if (!id) return;
+
+    setIsProcessing(true);
+
+    try {
+      const result = await ContactService.startImport(id as string);
+      toast.success(`Processamento iniciado com sucesso!`);
+
+      // Redirecionar ao final
+      router.push("/contacts/import/history");
+    } catch (error) {
+      toast.error("Erro ao processar importação.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteImport = async () => {
+    if (!id) return;
+
+    try {
+      await ContactService.deleteImport(id as string);
+      toast.success("Importação deletada com sucesso!");
+      router.push("/contacts/import/history"); // Redireciona para a página de listagem
+    } catch (error) {
+      toast.error("Erro ao deletar importação.");
+    }
+  };
+
   if (loading || isLoading) return <Spinner />;
   if (!user || !config)
     return <p className="text-center text-gray-500">Configuração não encontrada.</p>;
 
   return (
     <div className="p-4 sm:p-6">
-      {/* 🔹 Título da Página */}
       <h1 className="text-2xl font-bold mb-6">Editar Importação</h1>
-
       <DndProvider backend={HTML5Backend}>
         <Card>
-          <CardHeader>
-            <CardTitle>Configuração da Importação</CardTitle>
-          </CardHeader>
           <CardContent>
-            <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details">Detalhes</TabsTrigger>
-                <TabsTrigger value="config">Configuração</TabsTrigger>
-              </TabsList>
+            <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+              <div className="flex justify-between items-center pt-6 pb-4">
+                <TabsList className="md-4">
+                  <TabsTrigger value="details">Detalhes</TabsTrigger>
+                  <TabsTrigger value="config">Configuração</TabsTrigger>
+                </TabsList>
+
+                {importData && importData.status === "pendente" && (
+                  <ConfirmDelete
+                    onConfirm={() => handleDeleteImport()}
+                    entityName="Importação"
+                    label="Excluir Importação"
+                  />
+                )}
+              </div>
 
               <TabsContent value="details">
                 <ImportDetails importData={importData} />
               </TabsContent>
               <TabsContent value="config">
                 <ImportConfig config={config} setConfig={setConfig} csvHeaders={csvHeaders} />
+                <div className="flex flex-row gap-2 mt-8">
+                  {importData?.status === "pendente" && (
+                    <Button onClick={handleSaveConfig}>Salvar Configuração</Button>
+                  )}
+                  {importData?.status === "pendente" && (
+                    <Button
+                      variant="default"
+                      onClick={handleStartProcessing}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? "Iniciando..." : "Iniciar Processamento"}
+                    </Button>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </DndProvider>
-
-      {/* 🔹 Barra de Ações no Rodapé */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background shadow-md p-4 flex justify-center">
-        <Button onClick={handleSaveConfig}>Salvar Configuração</Button>
-      </div>
     </div>
   );
 }
 
-// Aplica o Layout global à página
 EditImportPage.getLayout = (page: JSX.Element) => <Layout>{page}</Layout>;

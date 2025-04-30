@@ -136,13 +136,13 @@ const CampaignsPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-2">
-                    <Button
+                    {/* <Button
                       variant="outline"
                       size="sm"
                       onClick={() => router.push(`/campaigns/${campaign.id}`)}
                     >
                       Ver detalhes
-                    </Button>
+                    </Button> */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -150,13 +150,13 @@ const CampaignsPage = () => {
                     >
                       Gerenciar
                     </Button>
-                    <Button
+                    {/* <Button
                       variant="default"
                       size="sm"
                       onClick={() => router.push(`/campaigns/${campaign.id}/audience`)}
                     >
                       🎯 Audiência
-                    </Button>
+                    </Button> */}
                     {campaign.status === "pendente" && (
                       <ConfirmDelete
                         onConfirm={() => deleteCampaign(campaign.id)}

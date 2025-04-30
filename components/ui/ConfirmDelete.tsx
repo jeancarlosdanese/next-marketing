@@ -16,24 +16,25 @@ import Spinner from "../Spinner";
 interface ConfirmDeleteProps {
   onConfirm: () => void;
   entityName: string;
+  label?: string;
   disabled?: boolean;
 }
 
-export function ConfirmDelete({ onConfirm, entityName, disabled }: ConfirmDeleteProps) {
+export function ConfirmDelete({ onConfirm, entityName, label, disabled }: ConfirmDeleteProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" disabled={disabled} onClick={() => setOpen(true)}>
-          {disabled ? "Excluindo..." : "Excluir"}
+          {disabled ? "Excluindo..." : label ? label : "Excluir"}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-border shadow-lg rounded-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir {entityName}</AlertDialogTitle>
           <AlertDialogDescription>
-            Você tem certeza que deseja excluir este {entityName}? Essa ação não pode ser desfeita.
+            Você tem certeza que deseja excluir {entityName}? Essa ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -1,17 +1,21 @@
 // File: pages/contacts/import.tsx
 
 import { useState } from "react";
+import { useRouter } from "next/router";
+import { useUser } from "@/context/UserContext";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { ContactService } from "@/services/contact";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import Spinner from "@/components/Spinner";
 
 export default function ImportContactsPage() {
+  const { user, loading: userLoading } = useUser();
+  const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<{ headers: string[]; rows: string[][] } | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -19,6 +23,8 @@ export default function ImportContactsPage() {
       setPreview(null);
     }
   };
+
+  const router = useRouter();
 
   const handleUpload = async () => {
     if (!file) return toast.error("Selecione um arquivo CSV primeiro!");
@@ -28,14 +34,10 @@ export default function ImportContactsPage() {
     try {
       const data = await ContactService.importContacts(file);
 
-      // ✅ Agora acessamos corretamente os headers e as rows
-      if (data.preview && data.preview.headers && data.preview.rows) {
-        setPreview({
-          headers: data.preview.headers,
-          rows: data.preview.rows,
-        });
+      if (data && data.id) {
+        router.push(`/contacts/import/${data.id}?tab=config`);
       } else {
-        toast.warning("Nenhum preview disponível.");
+        toast.error("Erro: ID da importação não foi retornado.");
       }
     } catch (error) {
       toast.error("Erro ao importar o CSV. Verifique o formato do arquivo.");
@@ -43,6 +45,8 @@ export default function ImportContactsPage() {
       setLoading(false);
     }
   };
+
+  if (userLoading || !user) return <Spinner />;
 
   return (
     <div className="flex min-h-screen">

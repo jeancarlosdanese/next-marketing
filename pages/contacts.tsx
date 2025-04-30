@@ -85,7 +85,7 @@ const ContactsPage = () => {
   const formatDate = (date?: string) =>
     date ? format(new Date(date), "dd/MM/yyyy", { locale: ptBR }) : "Não informado";
 
-  if (loading || contacts.length === 0) return <Spinner />;
+  if (loading) return <Spinner />;
   if (!user) return null;
 
   return (
@@ -112,7 +112,7 @@ const ContactsPage = () => {
 
       {/* Lista de Contatos */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {contacts.length > 0 ? (
+        {contacts?.length > 0 ? (
           contacts.map((contact) => (
             <Card key={contact.id} className="shadow-lg flex flex-col justify-between h-full">
               <CardHeader className="grid grid-cols-[10fr_1fr] justify-between">

@@ -73,7 +73,6 @@ const ManageCampaignPage = () => {
             </Button>
           )}
         </div>
-
         {/* Status da campanha */}
         <div className="flex items-center gap-1 text-gray-700 mb-4">
           <div className="flex items-center gap-1 text-gray-700 ml-auto pr-4">
@@ -81,7 +80,6 @@ const ManageCampaignPage = () => {
             <span className="text-xs font-semibold">{status.label}</span>
           </div>
         </div>
-
         {/* 🔹 Tabs para alternar entre "Dados", "Configuração" e "Audiência" */}
         <Tabs defaultValue="dados" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
@@ -102,6 +100,11 @@ const ManageCampaignPage = () => {
             <CampaignAudience campaignId={campaign.id} status={campaign.status} />
           </TabsContent>
         </Tabs>
+        <div className="flex justify-end">
+          <Button variant="default" onClick={() => router.push("/campaigns")}>
+            Voltar
+          </Button>
+        </div>
       </div>
     </Layout>
   );

@@ -47,7 +47,7 @@ export default function ImportHistoryPage() {
           <CardTitle>Histórico de Importações</CardTitle>
         </CardHeader>
         <CardContent>
-          {imports.length === 0 ? (
+          {!imports || imports?.length === 0 ? (
             <p className="text-gray-500">Nenhuma importação encontrada.</p>
           ) : (
             <div className="overflow-x-auto">

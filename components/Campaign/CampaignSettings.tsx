@@ -29,7 +29,9 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
     fetchSettings();
   }, [campaignId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setSettings({ ...settings, [e.target.name]: e.target.value });
   };
 
@@ -96,13 +98,20 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
         />
 
         <label>Tom de Voz:</label>
-        <Input
+        <select
           disabled={!isEditing}
           name="tone"
           value={settings.tone || ""}
           onChange={handleChange}
-          placeholder="Tom de voz"
-        />
+          className="border rounded p-2"
+        >
+          <option value="" disabled>
+            Selecione o tom de voz
+          </option>
+          <option value="formal">Formal</option>
+          <option value="casual">Casual</option>
+          <option value="neutro">Neutro</option>
+        </select>
 
         <label>Remetente do E-mail:</label>
         <Input

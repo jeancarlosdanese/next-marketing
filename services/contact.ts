@@ -86,10 +86,9 @@ export const ContactService = {
     }
   },
 
+  // 🔹 Método para buscar uma importação de contatos pelo ID
   async getImportById(importId: string) {
     try {
-      console.log("importId", importId);
-
       const response = await axios.get(`${API_URL}/contacts/imports/${importId}`, getAuthHeaders());
 
       console.log("response.data", response.data);
@@ -101,6 +100,7 @@ export const ContactService = {
     }
   },
 
+  // 🔹 Método para atualizar a configuração de uma importação
   async updateImportConfig(importId: string, config: ContactImportConfig) {
     try {
       const response = await axios.put(
@@ -111,6 +111,35 @@ export const ContactService = {
       return response.data;
     } catch (error) {
       console.error("❌ Erro ao atualizar configuração da importação:", error);
+      throw error;
+    }
+  },
+
+  // 🔹 Método para iniciar o processamento de uma importação
+  startImport: async (importId: string) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/contacts/imports/${importId}/start`,
+        {},
+        getAuthHeaders()
+      );
+      return response.data;
+    } catch (error) {
+      console.error("❌ Erro ao iniciar processamento:", error);
+      throw error;
+    }
+  },
+
+  // 🔹 Método para deletar uma importação de contatos
+  async deleteImport(importId: string) {
+    try {
+      const response = await axios.delete(
+        `${API_URL}/contacts/imports/${importId}`,
+        getAuthHeaders()
+      );
+      return response.data;
+    } catch (error) {
+      console.error("❌ Erro ao deletar importação:", error);
       throw error;
     }
   },
