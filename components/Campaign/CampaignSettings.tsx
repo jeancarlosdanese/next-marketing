@@ -6,10 +6,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CampaignService } from "@/services/campaign";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Settings } from "@/types/campaign";
 import { se } from "date-fns/locale";
 
 const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: string }) => {
-  const [settings, setSettings] = useState<any | null>(null);
+  const [settings, setSettings] = useState<Settings>({
+    id: "",
+    campaign_id: "",
+    brand: "",
+    subject: "",
+    tone: undefined,
+    email_from: "",
+    email_reply: "",
+    email_footer: "",
+    email_instructions: "",
+    whatsapp_from: "",
+    whatsapp_reply: "",
+    whatsapp_footer: "",
+    whatsapp_instructions: "",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [isCloning, setIsCloning] = useState(false);
   // Se estiver pendente ou cancelada, permitir edição
@@ -22,7 +46,7 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
         setSettings(data || {});
       } catch (error) {
         console.warn("Nenhuma configuração encontrada.");
-        setSettings({});
+        setSettings(settings);
       }
     }
 
@@ -98,20 +122,25 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
         />
 
         <label>Tom de Voz:</label>
-        <select
-          disabled={!isEditing}
-          name="tone"
+        <Select
           value={settings.tone || ""}
-          onChange={handleChange}
-          className="border rounded p-2"
+          onValueChange={(value) =>
+            setSettings((prev) => ({
+              ...prev,
+              tone: value as "formal" | "casual" | "neutro" | undefined,
+            }))
+          }
+          disabled={!isEditing}
         >
-          <option value="" disabled>
-            Selecione o tom de voz
-          </option>
-          <option value="formal">Formal</option>
-          <option value="casual">Casual</option>
-          <option value="neutro">Neutro</option>
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecionar Tom de Voz" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="formal">Formal</SelectItem>
+            <SelectItem value="casual">Casual</SelectItem>
+            <SelectItem value="neutro">Neutro</SelectItem>
+          </SelectContent>
+        </Select>
 
         <label>Remetente do E-mail:</label>
         <Input
@@ -195,7 +224,7 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
           <Button
             variant="default"
             onClick={handleCloneSettings}
-            disabled={!isEditing || settings.id || isCloning}
+            disabled={!isEditing || !!settings.id || isCloning}
           >
             {isCloning ? "Clonando..." : "🔄 Clonar Última Configuração"}
           </Button>
