@@ -194,4 +194,20 @@ export const CampaignService = {
     );
     return response.data;
   },
+
+  // 🔹 8️⃣ Gerar preview de mensagem com IA
+  async generatePreview(campaignId: string, channel: "email" | "whatsapp") {
+    try {
+      const response = await axios.post(
+        `${API_URL}/campaigns/${campaignId}/generate-message`,
+        { channel },
+        getAuthHeaders()
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao gerar preview da campanha", error);
+      throw error;
+    }
+  },
 };

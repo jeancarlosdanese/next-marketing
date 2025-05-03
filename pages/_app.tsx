@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { UserProvider } from "@/context/UserContext";
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "@/components/Footer";
+import GomarketingEasterEgg from "@/components/GomarketingEasterEgg";
 
 export default function App({ Component, pageProps }: AppProps) {
   const getLayout = (Component as any).getLayout || ((page: JSX.Element) => page);
@@ -41,6 +42,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <UserProvider>
+      <GomarketingEasterEgg />
       {getLayout(<Component {...pageProps} />)}
       <Toaster />
       <Footer />

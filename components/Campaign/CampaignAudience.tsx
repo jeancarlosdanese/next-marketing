@@ -304,7 +304,7 @@ const CampaignAudience = ({ campaignId, status }: { campaignId: string; status: 
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Audiência da Campanha</h1>
+      <h1 className="text-2xl font-bold mb-6">🎯 Audiência da Campanha</h1>
 
       {/* 🔹 Filtros */}
       {isEditing && (

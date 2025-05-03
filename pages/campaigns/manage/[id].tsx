@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { statusIcons } from "@/constants/statusIcons";
 import { Clock } from "lucide-react";
+import { CampaignMessagesAI } from "@/components/Campaign/CampaignMessagesAI";
 
 const ManageCampaignPage = () => {
   const router = useRouter();
@@ -86,6 +87,7 @@ const ManageCampaignPage = () => {
             <TabsTrigger value="dados">📝 Dados</TabsTrigger>
             <TabsTrigger value="configuracao">⚙️ Configuração</TabsTrigger>
             <TabsTrigger value="audiencia">🎯 Audiência</TabsTrigger>
+            <TabsTrigger value="mensagens">✨ Mensagens com IA</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dados">
@@ -98,6 +100,10 @@ const ManageCampaignPage = () => {
 
           <TabsContent value="audiencia">
             <CampaignAudience campaignId={campaign.id} status={campaign.status} />
+          </TabsContent>
+
+          <TabsContent value="mensagens">
+            <CampaignMessagesAI campaignId={campaign.id} />
           </TabsContent>
         </Tabs>
         <div className="flex justify-end">
