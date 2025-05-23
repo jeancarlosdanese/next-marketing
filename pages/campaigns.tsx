@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { statusIcons } from "@/constants/statusIcons";
+import { Container } from "@/components/ui/Container";
 
 const CampaignsPage = () => {
   const { user, loading } = useUser();
@@ -74,7 +75,7 @@ const CampaignsPage = () => {
   if (!user) return null;
 
   return (
-    <div className="p-6">
+    <Container>
       {/* 🔹 Cabeçalho e Filtros */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Campanhas</h1>
@@ -139,7 +140,7 @@ const CampaignsPage = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => router.push(`/campaigns/manage/${campaign.id}`)}
+                      onClick={() => router.push(`/campaigns/${campaign.id}/manage`)}
                     >
                       Gerenciar
                     </Button>
@@ -159,7 +160,7 @@ const CampaignsPage = () => {
           <p className="text-gray-500">Nenhuma campanha encontrada.</p>
         )}
       </div>
-    </div>
+    </Container>
   );
 };
 

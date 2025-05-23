@@ -1,4 +1,4 @@
-// File: pages/campaigns/[id].tsx
+// File: pages/campaigns/[id]/manage.tsx
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";

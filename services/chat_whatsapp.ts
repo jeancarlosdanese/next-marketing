@@ -3,10 +3,9 @@
 import { ChatContactResumo } from "@/types/chat_contact_resumo";
 import { ChatMessageCreateDTO } from "@/types/chat_message_create_dto";
 import { ChatMessage } from "@/types/chat_messages";
-import { Chat } from "@/types/chats";
+import { Chat, ChatCreateDTO } from "@/types/chats";
 import { RespostaIA } from "@/types/resposta_ai";
 import axios from "axios";
-import { log } from "console";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,10 +17,32 @@ const getAuthHeaders = () => ({
 });
 
 export const ChatWhatsAppService = {
+  async criarChat(payload: ChatCreateDTO): Promise<void> {
+    await axios.post(`${API_URL}/chats`, payload, getAuthHeaders());
+  },
+
   async listarChats(): Promise<Chat[]> {
     const response = await axios.get<Chat[]>(`${API_URL}/chats`, getAuthHeaders());
 
     return response.data;
+  },
+
+  async buscarChat(chatId: string): Promise<Chat> {
+    const response = await axios.get(`${API_URL}/chats/${chatId}`, getAuthHeaders());
+    return response.data;
+  },
+
+  async atualizarChat(chatId: string, payload: ChatCreateDTO): Promise<void> {
+    await axios.put(`${API_URL}/chats/${chatId}`, payload, getAuthHeaders());
+  },
+
+  async iniciarSessao(chatId: string): Promise<void> {
+    await axios.post(`${API_URL}/chats/${chatId}/iniciar-sessao`, {}, getAuthHeaders());
+  },
+
+  async obterQrCode(chatId: string): Promise<string> {
+    const response = await axios.get(`${API_URL}/chats/${chatId}/qrcode`, getAuthHeaders());
+    return response.data.qrCode; // base64 string
   },
 
   async listarContatos(chatId: string): Promise<ChatContactResumo[]> {

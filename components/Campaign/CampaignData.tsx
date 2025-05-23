@@ -70,8 +70,8 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">📝 Dados da Campanha</h2>
+    <>
+      <h2 className="text-xl font-bold mb-6">📝 Dados da Campanha</h2>
 
       <div className="grid gap-4">
         <label>Nome:</label>
@@ -159,7 +159,7 @@ const CampaignSettings = ({ campaign }: { campaign: Campaign }) => {
           {isSaving ? "Salvando..." : "💾 Salvar Dados"}
         </Button>
       </div>
-    </div>
+    </>
   );
 };
 

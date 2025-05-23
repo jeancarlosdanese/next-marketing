@@ -36,7 +36,7 @@ export function CampaignMessagesAI({ campaignId }: CampaignMessagesAIProps) {
   if (!preview) return <p>Nenhuma prévia gerada.</p>;
 
   return (
-    <div className="space-y-4">
+    <>
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">✨ Mensagem com IA</h2>
         {/* <Button onClick={handleGenerate} disabled={loading}>
@@ -67,6 +67,6 @@ export function CampaignMessagesAI({ campaignId }: CampaignMessagesAIProps) {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }

@@ -13,3 +13,12 @@ export interface Chat {
   created_at: string;
   updated_at: string;
 }
+
+export interface ChatCreateDTO {
+  department: string;
+  title: string;
+  instructions: string;
+  phone_number: string;
+  evolution_instance: string;
+  webhook_url: string;
+}

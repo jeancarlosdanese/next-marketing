@@ -99,8 +99,8 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
   if (!settings) return <p className="text-gray-500 text-center">Carregando configurações...</p>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">⚙️ Configuração de Envio</h2>
+    <>
+      <h2 className="text-xl font-bold mb-6">⚙️ Configuração de Envio</h2>
 
       <div className="grid gap-4">
         <label>Marca:</label>
@@ -230,7 +230,7 @@ const CampaignSettings = ({ campaignId, status }: { campaignId: string; status: 
           </Button>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

@@ -39,7 +39,10 @@ export function Sidebar() {
             </Button>
           </SheetTrigger>
 
-          <SheetContent side="left" className="w-64 bg-background border-r border-border">
+          <SheetContent
+            side="left"
+            className="w-64 bg-background border-r border-border text-foreground dark:bg-background dark:text-foreground"
+          >
             {/* 🔹 Acessibilidade - Adicionando título e descrição */}
             <SheetHeader>
               <SheetTitle>hy-marketing</SheetTitle>

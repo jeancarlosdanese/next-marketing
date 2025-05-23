@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/pagination";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
 
 type PaginatorProps = {
   totalRecords: number;
@@ -58,77 +57,81 @@ export default function Paginator({
   onPageChange,
 }: PaginatorProps) {
   return (
-    <div className="flex flex-col items-center mt-6">
-      <p className="text-sm text-muted-foreground">
-        Exibindo <span className="font-semibold">{(currentPage - 1) * perPage + 1}</span> -{" "}
-        <span className="font-semibold">{Math.min(currentPage * perPage, totalRecords)}</span> de{" "}
-        <span className="font-semibold">{totalRecords}</span> registros
-      </p>
+    <>
+      <div className="flex flex-col items-center mt-6">
+        <p className="text-sm text-muted-foreground">
+          Exibindo <span className="font-semibold">{(currentPage - 1) * perPage + 1}</span> -{" "}
+          <span className="font-semibold">{Math.min(currentPage * perPage, totalRecords)}</span> de{" "}
+          <span className="font-semibold">{totalRecords}</span> registros
+        </p>
 
-      <Pagination>
-        <PaginationContent>
-          {/* Botão "Anterior" */}
-          <PaginationItem>
-            <PaginationPreviousCustom
-              className={cn({ "pointer-events-none opacity-50": currentPage === 1 })}
-              onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-            />
-          </PaginationItem>
-
-          {currentPage > 2 && (
+        <Pagination>
+          <PaginationContent>
+            {/* Botão "Anterior" */}
             <PaginationItem>
-              <PaginationLink onClick={() => onPageChange(1)}>1</PaginationLink>
+              <PaginationPreviousCustom
+                className={cn({ "pointer-events-none opacity-50": currentPage === 1 })}
+                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+              />
             </PaginationItem>
-          )}
 
-          {currentPage > 3 && (
+            {currentPage > 2 && (
+              <PaginationItem>
+                <PaginationLink onClick={() => onPageChange(1)}>1</PaginationLink>
+              </PaginationItem>
+            )}
+
+            {currentPage > 3 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {currentPage > 1 && (
+              <PaginationItem>
+                <PaginationLink onClick={() => onPageChange(currentPage - 1)}>
+                  {currentPage - 1}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {/* Página atual destacada */}
             <PaginationItem>
-              <PaginationEllipsis />
+              <PaginationLink isActive>{currentPage}</PaginationLink>
             </PaginationItem>
-          )}
 
-          {currentPage > 1 && (
+            {currentPage < totalPages && (
+              <PaginationItem>
+                <PaginationLink onClick={() => onPageChange(currentPage + 1)}>
+                  {currentPage + 1}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {currentPage < totalPages - 2 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {currentPage < totalPages - 1 && (
+              <PaginationItem>
+                <PaginationLink onClick={() => onPageChange(totalPages)}>
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {/* Botão "Próximo" */}
             <PaginationItem>
-              <PaginationLink onClick={() => onPageChange(currentPage - 1)}>
-                {currentPage - 1}
-              </PaginationLink>
+              <PaginationNextCustom
+                className={cn({ "pointer-events-none opacity-50": currentPage >= totalPages })}
+                onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+              />
             </PaginationItem>
-          )}
-
-          {/* Página atual destacada */}
-          <PaginationItem>
-            <PaginationLink isActive>{currentPage}</PaginationLink>
-          </PaginationItem>
-
-          {currentPage < totalPages && (
-            <PaginationItem>
-              <PaginationLink onClick={() => onPageChange(currentPage + 1)}>
-                {currentPage + 1}
-              </PaginationLink>
-            </PaginationItem>
-          )}
-
-          {currentPage < totalPages - 2 && (
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-          )}
-
-          {currentPage < totalPages - 1 && (
-            <PaginationItem>
-              <PaginationLink onClick={() => onPageChange(totalPages)}>{totalPages}</PaginationLink>
-            </PaginationItem>
-          )}
-
-          {/* Botão "Próximo" */}
-          <PaginationItem>
-            <PaginationNextCustom
-              className={cn({ "pointer-events-none opacity-50": currentPage >= totalPages })}
-              onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    </div>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    </>
   );
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-background border-t border-border text-muted-foreground text-sm text-center py-3">
+    <footer className="w-full bg-background border-t border-border text-muted-foreground text-sm text-center py-3 px-4 sm:px-6">
       <p>
         Next-Marketing v1.0.0 - Desenvolvido por{" "}
         <Link

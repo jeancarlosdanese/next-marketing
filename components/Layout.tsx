@@ -10,14 +10,17 @@ type LayoutProps = {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <div className="flex flex-1">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="flex flex-1 w-full">
         <Sidebar />
         <div className="flex flex-col flex-1">
           <Header />
-          <main className="flex-grow p-6">{children}</main>
+          <main className="flex-grow p-6 w-full">{children}</main>
         </div>
       </div>
+
+      {/* 🔹 Rodapé com largura total */}
+      <Footer />
     </div>
   );
 }
