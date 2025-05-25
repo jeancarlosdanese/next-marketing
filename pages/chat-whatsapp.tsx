@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Chat } from "@/types/chats";
 import { ChatMessage } from "@/types/chat_messages";
+import { getValidSessionStatusKey, sessionStatusIcons } from "@/utils/sessionStatusIcons";
 
 // Tipagens
 
@@ -240,13 +241,36 @@ export default function ChatWhatsAppPage() {
     </div>
   );
 
+  useEffect(() => {
+    if (!chatSelecionado?.id) return;
+
+    const sincronizarStatus = async () => {
+      try {
+        const novoStatus = await ChatWhatsAppService.verificarStatusSessao(chatSelecionado.id);
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.id === chatSelecionado.id ? { ...chat, session_status: String(novoStatus) } : chat
+          )
+        );
+      } catch (err) {
+        console.warn("Erro ao sincronizar status da sessão:", err);
+      }
+    };
+
+    sincronizarStatus(); // chama logo ao trocar
+
+    const interval = setInterval(sincronizarStatus, 30000); // a cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [chatSelecionado]);
+
   return (
     <Layout>
       <div className="overflow-hidden">
         {/* Cabeçalho fixo com seletor de setor */}
         <div className="flex items-center justify-between p-4 border-b bg-background">
           <h1 className="text-lg font-bold">🤖 Atendimento Inteligente</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Select
               value={chatSelecionado?.id || ""}
               onValueChange={(id) => {
@@ -269,6 +293,22 @@ export default function ChatWhatsAppPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            {chatSelecionado && (
+              <div className="flex items-center gap-2 ml-4">
+                {(() => {
+                  const statusKey = getValidSessionStatusKey(chatSelecionado.session_status);
+                  const { icon: StatusIcon, label, color } = sessionStatusIcons[statusKey];
+
+                  return (
+                    <div className="flex items-center gap-1 text-sm">
+                      <StatusIcon className={`w-4 h-4 ${color}`} />
+                      <span className={color}>{label}</span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </div>
 

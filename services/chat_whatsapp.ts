@@ -3,8 +3,9 @@
 import { ChatContactResumo } from "@/types/chat_contact_resumo";
 import { ChatMessageCreateDTO } from "@/types/chat_message_create_dto";
 import { ChatMessage } from "@/types/chat_messages";
-import { Chat, ChatCreateDTO } from "@/types/chats";
+import { Chat, ChatCreateDTO, SessionStatusDTO } from "@/types/chats";
 import { RespostaIA } from "@/types/resposta_ai";
+import { getValidSessionStatusKey } from "@/utils/sessionStatusIcons";
 import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -58,6 +59,12 @@ export const ChatWhatsAppService = {
     return response.data;
   },
 
+  async verificarStatusSessao(chatId: string): Promise<SessionStatusDTO> {
+    const response = await axios.get(`${API_URL}/chats/${chatId}/status`, getAuthHeaders());
+
+    return mapApiStatusToSessionStatus(response.data);
+  },
+
   async enviarMensagem(
     chatId: string,
     contactId: string,
@@ -89,3 +96,14 @@ export const ChatWhatsAppService = {
     }
   },
 };
+
+// Mapear o status da API para o formato esperado
+function mapApiStatusToSessionStatus(raw: any): SessionStatusDTO {
+  return {
+    status: getValidSessionStatusKey(raw.status),
+    connected: raw.connected,
+    qrCodeAvailable: raw.qrCodeAvailable,
+    qrCode: raw.qrCode,
+    message: raw.message,
+  };
+}
