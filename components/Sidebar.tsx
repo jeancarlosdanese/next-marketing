@@ -29,7 +29,8 @@ export function Sidebar() {
   const { user, logout } = useUser();
 
   return (
-    <>
+    <div className="hidden sm:block w-64 bg-background border-r border-border shadow-md">
+      {/* 🔹 Sidebar fixa no desktop */}
       {/* 🔹 Botão para abrir a sidebar no mobile */}
       <div className="sm:hidden fixed top-4 left-4 z-50">
         <Sheet>
@@ -58,7 +59,7 @@ export function Sidebar() {
       <aside className="hidden sm:flex sm:flex-col w-64 min-h-screen bg-background border-r border-border shadow-md">
         <SidebarContent user={user} logout={logout} router={router} />
       </aside>
-    </>
+    </div>
   );
 }
 
@@ -82,23 +83,6 @@ function SidebarContent({ user, logout, router }: { user: any; logout: () => voi
           </Link>
         ))}
       </nav>
-
-      {/* 🔹 Botão de Logout fixo no final */}
-      {user && (
-        <div className="mt-auto">
-          <Button
-            variant="destructive"
-            className="w-full flex items-center gap-3 justify-start"
-            onClick={() => {
-              logout();
-              router.push("/auth/login");
-            }}
-          >
-            <LogOut className="w-5 h-5" />
-            Sair
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/UserContext";
 import ThemeToggle from "./ThemeToggle";
+import { LogOut } from "lucide-react";
 
 type HeaderProps = {
   title?: string;
@@ -19,10 +20,13 @@ export function Header({ title }: HeaderProps) {
       <div className="flex items-center gap-4">
         {user ? (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 flex items-center justify-center bg-gray-300 text-gray-800 rounded-full text-sm font-semibold">
+            <div className="w-8 h-8 flex items-center justify-center bg-muted text-foreground rounded-full text-sm font-semibold">
               {user.name.charAt(0).toUpperCase()}
             </div>
-            <p className="text-sm">{user.email}</p>
+            <div className="hidden sm:block">
+              <p className="text-sm font-medium leading-tight">{user.name}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
+            </div>
           </div>
         ) : (
           <p className="text-sm text-red-500">Não autenticado</p>
@@ -30,7 +34,14 @@ export function Header({ title }: HeaderProps) {
 
         <ThemeToggle />
 
-        <Button variant="outline" onClick={logout}>
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2"
+          onClick={() => {
+            logout();
+          }}
+        >
+          <LogOut className="w-4 h-4" />
           Sair
         </Button>
       </div>
