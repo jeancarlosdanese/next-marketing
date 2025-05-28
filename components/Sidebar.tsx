@@ -21,6 +21,7 @@ const menuItems = [
   { name: "Templates", href: "/templates", icon: <FileText className="w-5 h-5" /> },
   { name: "Campanhas", href: "/campaigns", icon: <Megaphone className="w-5 h-5" /> },
   { name: "Contatos", href: "/contacts", icon: <Users className="w-5 h-5" /> },
+  { name: "Chats WhatsApp", href: "/chats", icon: <Users className="w-5 h-5" /> },
   { name: "Configurações", href: "/settings", icon: <Settings className="w-5 h-5" /> },
 ];
 
@@ -29,8 +30,7 @@ export function Sidebar() {
   const { user, logout } = useUser();
 
   return (
-    <div className="hidden sm:block w-64 bg-background border-r border-border shadow-md">
-      {/* 🔹 Sidebar fixa no desktop */}
+    <>
       {/* 🔹 Botão para abrir a sidebar no mobile */}
       <div className="sm:hidden fixed top-4 left-4 z-50">
         <Sheet>
@@ -44,7 +44,6 @@ export function Sidebar() {
             side="left"
             className="w-64 bg-background border-r border-border text-foreground dark:bg-background dark:text-foreground"
           >
-            {/* 🔹 Acessibilidade - Adicionando título e descrição */}
             <SheetHeader>
               <SheetTitle>hy-marketing</SheetTitle>
               <SheetDescription>Acesse as seções do sistema</SheetDescription>
@@ -56,10 +55,10 @@ export function Sidebar() {
       </div>
 
       {/* 🔹 Sidebar fixa no desktop */}
-      <aside className="hidden sm:flex sm:flex-col w-64 min-h-screen bg-background border-r border-border shadow-md">
+      <div className="hidden sm:flex sm:flex-col w-64 min-h-screen bg-background border-r border-border shadow-md">
         <SidebarContent user={user} logout={logout} router={router} />
-      </aside>
-    </div>
+      </div>
+    </>
   );
 }
 

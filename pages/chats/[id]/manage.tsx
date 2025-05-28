@@ -13,19 +13,23 @@ import { ChatWhatsAppService } from "@/services/chat_whatsapp";
 import { ChatCreateDTO } from "@/types/chats";
 import { PromptAIEditor } from "@/components/PromptAIEditor";
 import { Container } from "@/components/ui/Container";
+import { Badge } from "@/components/ui/badge";
+import { getValidSessionStatusKey, sessionStatusIcons } from "@/utils/sessionStatusIcons";
+import SessionStatusBadge from "@/components/chat/SessionStatusBadge";
 
 const ManageChatPage = () => {
   const router = useRouter();
   const { id } = router.query;
   const { user, loading } = useUser();
 
-  const [form, setForm] = useState<ChatCreateDTO>({
+  const [chat, setChat] = useState<ChatCreateDTO>({
     department: "",
     title: "",
     instructions: "",
     phone_number: "",
-    evolution_instance: "",
+    instance_name: "",
     webhook_url: "",
+    session_status: "",
   });
 
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -41,7 +45,7 @@ const ManageChatPage = () => {
     if (!isReady || !user) return;
 
     ChatWhatsAppService.buscarChat(id as string)
-      .then(setForm)
+      .then(setChat)
       .catch((err) => {
         toast.error("Erro ao carregar chat.");
         console.error(err);
@@ -50,12 +54,12 @@ const ManageChatPage = () => {
   }, [id, isReady, user]);
 
   const handleChange = (field: keyof ChatCreateDTO, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setChat((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async () => {
     try {
-      await ChatWhatsAppService.atualizarChat(id as string, form);
+      await ChatWhatsAppService.atualizarChat(id as string, chat);
       toast.success("Chat atualizado com sucesso!");
     } catch (err) {
       toast.error("Erro ao atualizar o chat.");
@@ -117,27 +121,27 @@ const ManageChatPage = () => {
           <div className="space-y-4">
             <Input
               placeholder="Departamento"
-              value={form.department}
+              value={chat.department}
               onChange={(e) => handleChange("department", e.target.value)}
             />
             <Input
               placeholder="Título do setor"
-              value={form.title}
+              value={chat.title}
               onChange={(e) => handleChange("title", e.target.value)}
             />
             <Input
               placeholder="Número principal (WhatsApp)"
-              value={form.phone_number}
+              value={chat.phone_number}
               onChange={(e) => handleChange("phone_number", e.target.value)}
             />
             <Input
               placeholder="Instância (ex: vendas_hyberica)"
-              value={form.evolution_instance}
-              onChange={(e) => handleChange("evolution_instance", e.target.value)}
+              value={chat.instance_name}
+              onChange={(e) => handleChange("instance_name", e.target.value)}
             />
             <Input
               placeholder="Webhook URL"
-              value={form.webhook_url}
+              value={chat.webhook_url}
               onChange={(e) => handleChange("webhook_url", e.target.value)}
             />
 
@@ -149,7 +153,7 @@ const ManageChatPage = () => {
 
         <TabsContent value="instrucoes">
           <PromptAIEditor
-            value={form.instructions}
+            value={chat.instructions}
             onChange={(value) => handleChange("instructions", value)}
             className="mb-6"
           />
@@ -159,12 +163,18 @@ const ManageChatPage = () => {
         </TabsContent>
 
         <TabsContent value="sessao">
-          <div className="flex flex-row gap-4 justify-start">
-            <Button onClick={iniciarSessao}>Iniciar Sessão WhatsApp</Button>
-            {qrCode && (
-              <img src={qrCode} alt="QR Code" className="w-52 h-52 border rounded-md shadow" />
-            )}
-          </div>
+          {chat.session_status !== "conectado" ? (
+            <div className="flex flex-row gap-4 justify-start">
+              <Button onClick={iniciarSessao}>Iniciar Sessão WhatsApp</Button>
+              {qrCode && (
+                <img src={qrCode} alt="QR Code" className="w-52 h-52 border rounded-md shadow" />
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center py-6">
+              <SessionStatusBadge status={chat.session_status} />
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </Container>

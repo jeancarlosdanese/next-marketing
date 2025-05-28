@@ -1,7 +1,7 @@
 // components/chat/ChatWindow.tsx
 
 import { useEffect, useState } from "react";
-import ChatMessageItem from "./ChatMessage";
+import ChatMessageItem from "./ChatMessageItem";
 import ChatAISuggestion from "./ChatAISuggestion";
 import ChatInput from "./ChatInput";
 import { Chat } from "@/types/chats";
@@ -57,7 +57,7 @@ export default function ChatWindow({ chat, contatoId }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-muted">
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-zinc-50 dark:bg-zinc-800">
         {mensagens.map((msg) => (
           <ChatMessageItem key={msg.id} msg={msg} />
         ))}
@@ -79,6 +79,7 @@ export default function ChatWindow({ chat, contatoId }: Props) {
         onSend={() => enviarMensagem(input)}
         onIA={gerarSugestao}
         disabled={!input}
+        className="border-t p-2 bg-zinc-50 dark:bg-zinc-800"
       />
     </div>
   );

@@ -1,5 +1,6 @@
-// components/chat/ChatHeader.tsx
+// File: components/chat/ChatHeader.tsx
 
+import { Chat } from "@/types/chats";
 import {
   Select,
   SelectContent,
@@ -7,25 +8,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { sessionStatusIcons, getValidSessionStatusKey } from "@/utils/sessionStatusIcons";
-import { Chat } from "@/types/chats";
+import { getValidSessionStatusKey, sessionStatusIcons } from "@/utils/sessionStatusIcons";
 
-export default function ChatHeader({
-  chats,
-  selected,
-  onSelect,
-}: {
+interface Props {
   chats: Chat[];
   selected: Chat | null;
-  onSelect: (c: Chat) => void;
-}) {
+  onSelect: (chat: Chat) => void;
+}
+
+export default function ChatHeader({ chats, selected, onSelect }: Props) {
   const statusKey = getValidSessionStatusKey(selected?.session_status);
   const { icon: StatusIcon, label, color } = sessionStatusIcons[statusKey];
 
   return (
-    <div className="flex justify-between items-center border-b px-4 py-2 bg-background">
-      <h1 className="font-bold text-lg">🤖 Atendimento Inteligente</h1>
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-4 border-b bg-background">
+      {/* Título */}
+      <div className="flex items-center gap-2 text-lg font-semibold">
+        🤖 Atendimento Inteligente
+      </div>
+
+      {/* Seletor + status */}
+      <div className="flex items-center gap-2">
         <Select
           value={selected?.id || ""}
           onValueChange={(id) => {
@@ -33,17 +36,19 @@ export default function ChatHeader({
             if (novo) onSelect(novo);
           }}
         >
-          <SelectTrigger className="w-64">
+          <SelectTrigger className="w-[180px] sm:w-64">
             <SelectValue placeholder="Selecione o setor" />
           </SelectTrigger>
           <SelectContent>
-            {chats.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.title}
+            {chats.map((chat) => (
+              <SelectItem key={chat.id} value={chat.id}>
+                {chat.title}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        {/* Status */}
         <div className="flex items-center gap-1 text-sm">
           <StatusIcon className={`w-4 h-4 ${color}`} />
           <span className={color}>{label}</span>

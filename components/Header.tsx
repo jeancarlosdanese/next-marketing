@@ -28,9 +28,7 @@ export function Header({ title }: HeaderProps) {
               <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
           </div>
-        ) : (
-          <p className="text-sm text-red-500">Não autenticado</p>
-        )}
+        ) : null}
 
         <ThemeToggle />
 

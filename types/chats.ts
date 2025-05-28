@@ -9,7 +9,7 @@ export interface Chat {
   title: string;
   instructions: string;
   phone_number: string;
-  evolution_instance: string;
+  instance_name: string;
   webhook_url: string;
   status: "ativo" | "inativo";
   session_status?: string;
@@ -22,8 +22,9 @@ export interface ChatCreateDTO {
   title: string;
   instructions: string;
   phone_number: string;
-  evolution_instance: string;
+  instance_name: string;
   webhook_url: string;
+  session_status?: string;
 }
 
 export type SessionStatusDTO = {

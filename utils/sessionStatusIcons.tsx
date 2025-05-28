@@ -19,7 +19,7 @@ export const sessionStatusIcons: Record<
     color: string;
   }
 > = {
-  conectado: { icon: CheckCircle, label: "Conectado", color: "text-green-600" },
+  conectado: { icon: CheckCircle, label: "Conectado", color: "text-green-500" },
   aguardando_qr: { icon: Clock, label: "QR aguardando", color: "text-yellow-500" },
   qrcode_expirado: { icon: Clock, label: "QR expirado", color: "text-orange-500" },
   desconectado: { icon: XCircle, label: "Desconectado", color: "text-gray-500" },

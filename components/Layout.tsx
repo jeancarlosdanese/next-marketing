@@ -1,5 +1,6 @@
 // File: components/Layout.tsx
 
+import React from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -17,13 +18,12 @@ export default function Layout({ children, exibirRodape = true, modo = "rolavel"
     <div className={`flex flex-col bg-background text-foreground ${layoutClass}`}>
       <div className="flex flex-1 w-full">
         <Sidebar />
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 min-h-0">
           <Header />
-          <main className="flex-grow p-6 w-full">{children}</main>
+          <main className="flex-grow w-full px-4 py-2 sm:p-6 overflow-y-auto">{children}</main>
         </div>
       </div>
 
-      {/* 🔹 Rodapé com largura total */}
       {exibirRodape ? (
         <Footer />
       ) : (

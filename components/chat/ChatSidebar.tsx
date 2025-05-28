@@ -39,7 +39,7 @@ export default function ChatSidebar({
   }, [chatId]);
 
   return (
-    <div className="w-64 border-r bg-muted overflow-y-auto">
+    <div className="w-full sm:w-64 border-r bg-zinc-50 dark:bg-zinc-900 overflow-y-auto">
       <div className="p-4 font-semibold border-b text-lg">📞 Contatos</div>
       {contatos.map((c) => (
         <div
