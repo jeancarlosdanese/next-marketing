@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChatWhatsAppService } from "@/services/chat_whatsapp";
-import { ChatContactResumo } from "@/types/chat_contact_resumo";
+import { ChatContactResumo } from "@/types/chat_whatsapp_contact";
 
 interface Props {
   chatId?: string;
@@ -13,7 +13,7 @@ export default function ChatContactListMobile({ chatId, selectedId, onSelect }: 
 
   useEffect(() => {
     if (!chatId) return;
-    ChatWhatsAppService.listarContatos(chatId).then(setContatos);
+    ChatWhatsAppService.listarChatContacts(chatId).then(setContatos);
   }, [chatId]);
 
   return (

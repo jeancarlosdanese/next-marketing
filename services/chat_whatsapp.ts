@@ -1,6 +1,6 @@
 // File: services/chat_whatsapp.ts
 
-import { ChatContactResumo } from "@/types/chat_contact_resumo";
+import { ChatContactFull } from "@/types/chat_contact";
 import { ChatMessageCreateDTO } from "@/types/chat_message_create_dto";
 import { ChatMessage } from "@/types/chat_messages";
 import { Chat, ChatCreateDTO, SessionStatusDTO } from "@/types/chats";
@@ -38,7 +38,7 @@ export const ChatWhatsAppService = {
   },
 
   async iniciarSessao(chatId: string): Promise<void> {
-    await axios.post(`${API_URL}/chats/${chatId}/iniciar-sessao`, {}, getAuthHeaders());
+    await axios.post(`${API_URL}/chats/${chatId}/session-start`, {}, getAuthHeaders());
   },
 
   async obterQrCode(chatId: string): Promise<string> {
@@ -46,14 +46,16 @@ export const ChatWhatsAppService = {
     return response.data.qrCode; // base64 string
   },
 
-  async listarContatos(chatId: string): Promise<ChatContactResumo[]> {
-    const response = await axios.get(`${API_URL}/chats/${chatId}/contatos`, getAuthHeaders());
+  async listarChatContacts(chatId: string): Promise<ChatContactFull[]> {
+    const response = await axios.get(`${API_URL}/chats/${chatId}/chat-contacts`, getAuthHeaders());
+    console.log("Contatos obtidos:", response.data);
+
     return response.data;
   },
 
-  async listarMensagens(chatId: string, contactId: string): Promise<ChatMessage[]> {
+  async listarMensagens(chatId: string, chatContactId: string): Promise<ChatMessage[]> {
     const response = await axios.get(
-      `${API_URL}/chats/${chatId}/contatos/${contactId}/mensagens`,
+      `${API_URL}/chats/${chatId}/chat-contacts/${chatContactId}/messages`,
       getAuthHeaders()
     );
     return response.data;
@@ -67,29 +69,31 @@ export const ChatWhatsAppService = {
 
   async enviarMensagem(
     chatId: string,
-    contactId: string,
+    chatContactId: string,
     payload: ChatMessageCreateDTO
   ): Promise<ChatMessage> {
     const response = await axios.post(
-      `${API_URL}/chats/${chatId}/contatos/${contactId}/mensagens`,
+      `${API_URL}/chats/${chatId}/chat-contacts/${chatContactId}/messages`,
       payload,
       getAuthHeaders()
     );
     return response.data;
   },
 
-  async sugerirResposta(mensagem: string, contactId: string, chatId: string): Promise<string> {
+  async sugestaoRespostaAI(
+    message: string,
+    chatContactId: string,
+    chatId: string
+  ): Promise<string> {
     try {
       const response = await axios.post<RespostaIA>(
-        `${API_URL}/chat/sugerir-resposta`,
+        `${API_URL}/chats/${chatId}/chat-contacts/${chatContactId}/suggestion-ai`,
         {
-          chat_id: chatId,
-          contact_id: contactId,
-          mensagem,
+          message,
         },
         getAuthHeaders()
       );
-      return response.data.resposta_sugerida;
+      return response.data.suggestion_ai;
     } catch (error) {
       console.error("Erro ao sugerir resposta:", error);
       return "Desculpe, não consegui gerar uma resposta.";

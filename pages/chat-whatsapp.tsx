@@ -102,7 +102,7 @@ const ChatWhatsAppPage = () => {
               selectedId={contatoSelecionado}
               onSelect={setContatoSelecionado}
             />
-            <ChatWindow chat={chatSelecionado} contatoId={contatoSelecionado} />
+            <ChatWindow chat={chatSelecionado} chatContactId={contatoSelecionado} />
           </div>
         )}
       </div>

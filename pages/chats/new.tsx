@@ -22,7 +22,7 @@ const NewChatPage = () => {
     title: "",
     instructions: "",
     phone_number: "",
-    evolution_instance: "",
+    instance_name: "",
     webhook_url: "",
   });
 
@@ -37,7 +37,7 @@ const NewChatPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!form.department || !form.title || !form.phone_number || !form.evolution_instance) {
+    if (!form.department || !form.title || !form.phone_number || !form.instance_name) {
       setError("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -86,8 +86,8 @@ const NewChatPage = () => {
         <label className="block mt-3 sm:mt-4">Identificador da Instância (slug único):</label>
         <Input
           placeholder="Ex: vendas_hyberica"
-          value={form.evolution_instance}
-          onChange={(e) => handleChange("evolution_instance", e.target.value)}
+          value={form.instance_name}
+          onChange={(e) => handleChange("instance_name", e.target.value)}
         />
 
         <label className="block mt-3 sm:mt-4">Webhook URL (opcional):</label>

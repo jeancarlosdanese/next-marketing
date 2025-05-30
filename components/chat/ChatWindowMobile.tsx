@@ -48,7 +48,7 @@ export default function ChatWindowMobile({ chat, contactId, onVoltar }: Props) {
 
   const gerarSugestao = async () => {
     if (!chat?.id || !contactId || !input) return;
-    const sugestao = await ChatWhatsAppService.sugerirResposta(input, contactId, chat.id);
+    const sugestao = await ChatWhatsAppService.sugestaoRespostaAI(input, contactId, chat.id);
     setSugestaoIA(sugestao);
   };
 

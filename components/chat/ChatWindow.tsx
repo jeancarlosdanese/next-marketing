@@ -1,6 +1,6 @@
 // components/chat/ChatWindow.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChatMessageItem from "./ChatMessageItem";
 import ChatAISuggestion from "./ChatAISuggestion";
 import ChatInput from "./ChatInput";
@@ -10,34 +10,46 @@ import { ChatWhatsAppService } from "@/services/chat_whatsapp";
 
 interface Props {
   chat: Chat | null;
-  contatoId: string | null;
+  chatContactId: string | null;
 }
 
-export default function ChatWindow({ chat, contatoId }: Props) {
+export default function ChatWindow({ chat, chatContactId }: Props) {
   const [mensagens, setMensagens] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sugestaoIA, setSugestaoIA] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
 
+  // 🔁 Atualiza mensagens a cada 10 segundos
   useEffect(() => {
-    if (!chat?.id || !contatoId) return;
+    if (!chat?.id || !chatContactId) return;
+
     const fetchMensagens = async () => {
-      const result = await ChatWhatsAppService.listarMensagens(chat.id, contatoId);
+      const result = await ChatWhatsAppService.listarMensagens(chat.id, chatContactId);
       setMensagens(result);
-      setInput("");
-      setSugestaoIA("");
     };
-    fetchMensagens();
-  }, [chat?.id, contatoId]);
+
+    fetchMensagens(); // Inicial
+
+    const interval = setInterval(fetchMensagens, 10000);
+    return () => clearInterval(interval); // Cleanup
+  }, [chat?.id, chatContactId]);
+
+  // 🔄 Scroll automático
+  useEffect(() => {
+    if (endRef.current) {
+      endRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [mensagens, sugestaoIA]);
 
   const gerarSugestao = async () => {
-    if (!input || !chat?.id || !contatoId) return;
-    const sugestao = await ChatWhatsAppService.sugerirResposta(input, contatoId, chat.id);
+    if (!chat?.id || !chatContactId) return;
+    const sugestao = await ChatWhatsAppService.sugestaoRespostaAI(input, chatContactId, chat.id);
     setSugestaoIA(sugestao);
   };
 
   const enviarMensagem = async (texto: string) => {
-    if (!chat?.id || !contatoId) return;
-    const msg = await ChatWhatsAppService.enviarMensagem(chat.id, contatoId, {
+    if (!chat?.id || !chatContactId) return;
+    const msg = await ChatWhatsAppService.enviarMensagem(chat.id, chatContactId, {
       actor: "atendente",
       type: "texto",
       content: texto,
@@ -47,7 +59,7 @@ export default function ChatWindow({ chat, contatoId }: Props) {
     setSugestaoIA("");
   };
 
-  if (!chat || !contatoId) {
+  if (!chat || !chatContactId) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground">
         Selecione um contato
@@ -64,14 +76,11 @@ export default function ChatWindow({ chat, contatoId }: Props) {
         {sugestaoIA && (
           <ChatAISuggestion
             sugestao={sugestaoIA}
-            onEnviar={() => enviarMensagem(sugestaoIA)}
-            onEditar={() => {
-              setInput(sugestaoIA);
-              setSugestaoIA("");
-            }}
+            onEnviar={(textoFinal) => enviarMensagem(textoFinal)}
             onIgnorar={() => setSugestaoIA("")}
           />
         )}
+        <div ref={endRef} />
       </div>
       <ChatInput
         value={input}

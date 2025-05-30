@@ -15,7 +15,7 @@ export const CopilotoAtendimento = () => {
   const [textoEditado, setTextoEditado] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const sugerirResposta = async () => {
+  const sugestaoRespostaAI = async () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/copiloto/sugerir-resposta", {
@@ -56,7 +56,7 @@ export const CopilotoAtendimento = () => {
           onChange={(e) => setMensagemCliente(e.target.value)}
         />
         <div className="flex gap-2">
-          <Button onClick={sugerirResposta} disabled={loading || !mensagemCliente}>
+          <Button onClick={sugestaoRespostaAI} disabled={loading || !mensagemCliente}>
             <Sparkles className="w-4 h-4 mr-1" />
             Sugerir Resposta
           </Button>

@@ -38,6 +38,7 @@ export default function ChatInput({ value, onChange, onSend, onIA, disabled, cla
         <Button type="button" onClick={onIA} variant="ghost" size="icon" title="Gerar com IA">
           <Sparkles className="w-5 h-5" />
         </Button>
+
         <Button type="submit" disabled={disabled} variant="default" size="icon" title="Enviar">
           <Send className="w-5 h-5" />
         </Button>

@@ -31,21 +31,19 @@ export default function ChatListPage() {
     fetchChats();
   }, []);
 
-  if (chats.length === 0) return null;
-
   return (
     <Container>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">📋 Chats WhatsApp</h1>
-          <Button onClick={() => router.push("/chats/create")}>
+          <Button onClick={() => router.push("/chats/new")}>
             <PlusCircle className="w-4 h-4 mr-2" />
             Novo Chat
           </Button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {chats.map((chat) => (
+          {chats?.map((chat) => (
             <Card key={chat.id}>
               <CardHeader>
                 <CardTitle>{chat.title}</CardTitle>
